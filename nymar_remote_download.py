@@ -24,17 +24,15 @@ nym_zt_ips = {'NYM1':'172.24.59.19', 'NYM2':'172.24.239.162',
 
 network = "OX"
 station_list = ['NYM1','NYM2','NYM3','NYM4','NYM5','NYM6','NYM7','NYM8']
-#add channel code ME4  for voltage
-# channels MUST be a list, even it just has one item
-# e.g. ['ME4']
 channels = ["HHZ",  "HHN", "HHE"] 
 #SET TO CORRECT CODE. should be '00' for veloctity data
 # will be somehing different for voltage, check status page (https://{your-ip-here})
 location = "00" 
 # set start / end date. 
 today = datetime.datetime.today()
-start = UTCDateTime(today.year, today.month, today.day, 0, 0, 0)
-end = UTCDateTime(today.year, today.month, today.day + 1, 0, 0, 0)
+# try to get previous 2 days of data (current day will not be available)
+start = UTCDateTime(today.year, today.month, today.day - 2, 0, 0, 0)
+end = UTCDateTime(today.year, today.month, today.day, 0, 0, 0)
 log.info(f'Query start time: {start}')
 log.info(f'Query end time: {end}')
 # some test start/ends that are 'safe' for testing the directory 
@@ -75,11 +73,8 @@ for station in station_list:
             outfile = Path(ddir, f"{request}.{year}{month:02d}{day:02d}T{hour:02d}0000.mseed")
             #Test if we have already downloaded this chunk
             if outfile.is_file():
-                print(f'Data chunk {outfile} exists')
-                print('Continue to next . . .')
+                log.info(f'Data chunk {outfile} exists')
             else:
-                print(f"\n http://{station_ip}:8080/data?channel={request}&from={startUNIX}&to={endUNIX}")
-                print(outfile)
                 timer_start = timeit.default_timer()
                 #time.sleep(5) # for testing directory creation
                 r = requests.get(f"http://{station_ip}:8080/data?channel={request}&from={startUNIX}&to={endUNIX}", f"{outfile}")
@@ -87,8 +82,7 @@ for station in station_list:
                     f.write(r.content)
                 timer_end = timeit.default_timer()
                 runtime = timer_end - timer_start
-                print(f'\n Request for hour chunk from {request} at {chunk_start} complete')
-                print(f'Request took {runtime:4.2f} seconds')
+                log.info(f'Request took {runtime:4.2f} seconds')
             # Iterate otherwise we will have an infinite loop!
         chunk_start += day_shift
         
@@ -96,7 +90,5 @@ for station in station_list:
 
 script_end = timeit.default_timer()
 runtime = script_end - script_start
-print(f'Done download for {network}.{station}')
-print(f'Runtime is {runtime:4.2f} seconds')
-print(f'Or {runtime/60:4.2f} minutes')
-print(f'Or {runtime/3600:4.2f} hours')
+
+log.info(f'Runtime is {runtime:4.2f} seconds, or {runtime/60:4.2f} minutes, or {runtime/3600:4.2f} hours')
