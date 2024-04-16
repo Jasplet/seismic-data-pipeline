@@ -13,7 +13,7 @@ import logging
 log = logging.getLogger(__name__)
 
 script_start = timeit.default_timer()
-log.info(f'Starting download. Time is {datetime.now()}')
+log.info(f'Starting download. Time is {datetime.datetime.now()}')
 
 nym_zt_ips = {'NYM1':'172.24.59.19', 'NYM2':'172.24.239.162',
               'NYM3':'172.24.40.146', 'NYM4':'172.24.77.181',
