@@ -44,6 +44,7 @@ log.info(f'Query end time: {end}')
 ########### End of variables to set ###########
 
 for station in station_list:
+    log.info(f'Request data for {station}')
     day_shift = datetime.timedelta(days=1)
     chunk_start = start
     chunk_end = start + day_shift
