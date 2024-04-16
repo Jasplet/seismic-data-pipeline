@@ -20,7 +20,6 @@ nym_zt_ips = {'NYM1':'172.24.59.19', 'NYM2':'172.24.239.162',
               'NYM5':'172.24.43.200', 'NYM6':'172.24.150.216',
               'NYM7':'172.24.194.185', 'NYM8':'172.24.3.251' }
 
-
 ######### Start of variable to set #############
 
 network = "OX"
@@ -32,11 +31,12 @@ channels = ["HHZ",  "HHN", "HHE"]
 #SET TO CORRECT CODE. should be '00' for veloctity data
 # will be somehing different for voltage, check status page (https://{your-ip-here})
 location = "00" 
-# set start / end data. 
-#for NYMAR earliest avaialable date is 2023-09-29T00:00:00
-# data has been collected (from the field) up to 2024-03-20T00:00:00
-start = UTCDateTime("2023-11-02T00:00:00")
-end = UTCDateTime("2023-11-03T00:00:00")
+# set start / end date. 
+today = datetime.datetime.today()
+start = UTCDateTime(today.year, today.month, today.day, 0, 0, 0)
+end = UTCDateTime(today.year, today.month, today.day + 1, 0, 0, 0)
+log.info(f'Query start time: {start}')
+log.info(f'Query end time: {end}')
 # some test start/ends that are 'safe' for testing the directory 
 # creation and file handling. uncomment if needed.
 # also dont forget to comment OUT the wget command as this data
@@ -45,14 +45,13 @@ end = UTCDateTime("2023-11-03T00:00:00")
 # end = UTCDateTime("3023-01-02T00:00:00")
 ########### End of variables to set ###########
 
-
 for station in station_list:
     day_shift = datetime.timedelta(days=1)
     chunk_start = start
     chunk_end = start + day_shift
     station_ip = nym_zt_ips[station]
     # path_cwd = Path('/Volumes/NYMAR_DATA/NYMAR/data_dump') / station
-    path_cwd = Path('/Users/eart0593/Projects/Agile/NYMAR/data/test/2023/11/02')
+    path_cwd = Path.cwd() / 'data'
     # keep requesting hour chunks of data until 
     # query start time reaches the end time
     while chunk_start < end:
