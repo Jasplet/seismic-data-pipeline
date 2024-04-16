@@ -9,10 +9,10 @@ import timeit
 import datetime
 import requests
 import logging
-
 log = logging.getLogger(__name__)
 
 script_start = timeit.default_timer()
+logging.basicConfig(filename='nymar_remote_download.log', level=logging.INFO)
 log.info(f'Starting download. Time is {datetime.datetime.now()}')
 
 nym_zt_ips = {'NYM1':'172.24.59.19', 'NYM2':'172.24.239.162',
