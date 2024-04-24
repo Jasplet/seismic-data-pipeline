@@ -11,8 +11,10 @@ import requests
 import logging
 log = logging.getLogger(__name__)
 
+today = datetime.datetime.today()
 script_start = timeit.default_timer()
-logging.basicConfig(filename='/home/joseph/logs/nymar_remote_download.log', level=logging.INFO)
+logging.basicConfig(filename=f'/home/joseph/logs/nymar_remote_download_{today.year}_{today.month:02d}_{today.day:02d}.log',
+                     level=logging.INFO)
 log.info(f'Starting download. Time is {datetime.datetime.now()}')
 
 nym_zt_ips = {'NYM1':'172.24.59.19', 'NYM2':'172.24.239.162',
@@ -29,10 +31,10 @@ channels = ["HHZ",  "HHN", "HHE"]
 # will be somehing different for voltage, check status page (https://{your-ip-here})
 location = "00" 
 # set start / end date. 
-today = datetime.datetime.today()
+
 # try to get previous 2 days of data (current day will not be available)
-start = UTCDateTime(today.year, today.month, today.day - 3, 0, 0, 0)
-end = UTCDateTime(today.year, today.month, today.day - 1, 0, 0, 0)
+start = UTCDateTime(today.year, today.month, today.day - 2, 0, 0, 0)
+end = UTCDateTime(today.year, today.month, today.day, 0, 0, 0)
 log.info(f'Query start time: {start}')
 log.info(f'Query end time: {end}')
 # some test start/ends that are 'safe' for testing the directory 
