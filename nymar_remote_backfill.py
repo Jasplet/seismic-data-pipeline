@@ -29,8 +29,8 @@ channels = ["HHZ",  "HHN", "HHE"]
 # will be somehing different for voltage, check status page (https://{your-ip-here})
 location = "00" 
 # try to get previous 2 days of data (current day will not be available)
-start = UTCDateTime(2024, 3, 19, 0, 0, 0)
-end = UTCDateTime(2024, 3, 31, 0, 0, 0)
+start = UTCDateTime(2024, 4, 1, 0, 0, 0)
+end = UTCDateTime(2024, 4, 14, 0, 0, 0)
 log.info(f'Query start time: {start}')
 log.info(f'Query end time: {end}')
 # some test start/ends that are 'safe' for testing the directory 
