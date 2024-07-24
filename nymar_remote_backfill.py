@@ -23,14 +23,16 @@ nym_zt_ips = {'NYM1':'172.24.59.19', 'NYM2':'172.24.239.162',
 ######### Start of variable to set #############
 
 network = "OX"
-station_list = ['NYM1','NYM2','NYM3','NYM4','NYM5','NYM6','NYM7','NYM8']
-channels = ["HHZ",  "HHN", "HHE"] 
+#station_list = ['NYM1','NYM2','NYM3','NYM4','NYM5','NYM6','NYM7','NYM8']
+#channels = ["HHZ",  "HHN", "HHE"]
+station_list = ['NYM8']
+channels = ['HHZ']
 #SET TO CORRECT CODE. should be '00' for veloctity data
 # will be somehing different for voltage, check status page (https://{your-ip-here})
 location = "00" 
 # try to get previous 2 days of data (current day will not be available)
-start = UTCDateTime(2024, 4, 1, 0, 0, 0)
-end = UTCDateTime(2024, 4, 14, 0, 0, 0)
+start = UTCDateTime(2024, 6, 4, 0, 0, 0)
+end = UTCDateTime(2024, 6, 5, 0, 0, 0)
 log.info(f'Query start time: {start}')
 log.info(f'Query end time: {end}')
 # some test start/ends that are 'safe' for testing the directory 
@@ -53,6 +55,7 @@ for station in station_list:
     # query start time reaches the end time
     while chunk_start < end:
         chunk_end = chunk_start + day_shift
+        log.info(f'Data for {chunk_start} - {chunk_end}')
         # add a 2.5 minute buffer either side of date query to reduce gap risk
         query_start = chunk_start - 150
         query_end = chunk_end + 150
@@ -74,7 +77,11 @@ for station in station_list:
             else:
                 timer_start = timeit.default_timer()
                 #time.sleep(5) # for testing directory creation
-                r = requests.get(f"http://{station_ip}:8080/data?channel={request}&from={startUNIX}&to={endUNIX}", f"{outfile}")
+                try:
+                    r = requests.get(f"http://{station_ip}:8080/data?channel={request}&from={startUNIX}&to={endUNIX}", f"{outfile}")
+                except Exception as e:
+                    log.error(e)
+                    continue
                 with open(outfile, "wb") as f:
                     f.write(r.content)
                 timer_end = timeit.default_timer()
