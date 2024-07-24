@@ -20,6 +20,8 @@ def hour_by_hour_query(request, query_date):
     chunk_start = query_date + hour_shift
     chunk_end = query_date
     while chunk_start < end:
+
+        log.info(f'Chunk: {chunk_start}')
         query_start = chunk_start - 150
         query_end = chunk_end + 150
         startUNIX = query_start.timestamp
@@ -47,7 +49,6 @@ def hour_by_hour_query(request, query_date):
                 log.info(f'Request took {runtime:4.2f} seconds')
             except:
                 log.error(f'Unable to request hour {hour}')
-
         chunk_start += day_shift
         # Iterate otherwise we will have an infinite loop!
     
