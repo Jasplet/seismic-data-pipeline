@@ -17,8 +17,8 @@ def hour_by_hour_query(request, query_date):
 
     hour_shift = datetime.timedelta(hours=1)
     end = query_date + datetime.timedelta(days=1)
-    chunk_start = query_date + hour_shift
-    chunk_end = query_date
+    chunk_start = query_date 
+    chunk_end = query_date + hour_shift
     while chunk_start < end:
         query_start = chunk_start - 150
         query_end = chunk_end + 150
