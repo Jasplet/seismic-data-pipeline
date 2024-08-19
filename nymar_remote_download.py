@@ -76,14 +76,17 @@ for station in station_list:
             if outfile.is_file():
                 log.info(f'Data chunk {outfile} exists')
             else:
-                timer_start = timeit.default_timer()
-                #time.sleep(5) # for testing directory creation
-                r = requests.get(f"http://{station_ip}:8080/data?channel={request}&from={startUNIX}&to={endUNIX}", f"{outfile}")
-                with open(outfile, "wb") as f:
-                    f.write(r.content)
-                timer_end = timeit.default_timer()
-                runtime = timer_end - timer_start
-                log.info(f'Request took {runtime:4.2f} seconds')
+                try:
+                    timer_start = timeit.default_timer()
+                    #time.sleep(5) # for testing directory creation
+                    r = requests.get(f"http://{station_ip}:8080/data?channel={request}&from={startUNIX}&to={endUNIX}", f"{outfile}")
+                    with open(outfile, "wb") as f:
+                        f.write(r.content)
+                    timer_end = timeit.default_timer()
+                    runtime = timer_end - timer_start
+                    log.info(f'Request took {runtime:4.2f} seconds')
+                except Exception as e:
+                    log.error('Unable to download day of data')
             # Iterate otherwise we will have an infinite loop!
         chunk_start += day_shift
         
