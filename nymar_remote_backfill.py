@@ -66,14 +66,14 @@ if __name__ == '__main__':
     ######### Start of variable to set #############
 
     network = "OX"
-    station_list = ['NYM1','NYM2','NYM3','NYM4','NYM5','NYM6','NYM7','NYM8']
+    station_list = ['NYM1','NYM3','NYM4','NYM5','NYM6','NYM7','NYM8']
     channels = ["HHZ",  "HHN", "HHE"] 
     #SET TO CORRECT CODE. should be '00' for veloctity data
     # will be somehing different for voltage, check status page (https://{your-ip-here})
     location = "00" 
     # try to get previous 2 days of data (current day will not be available)
-    start = UTCDateTime(2024, 4, 1, 0, 0, 0)
-    end = UTCDateTime(2024, 4, 14, 0, 0, 0)
+    start = UTCDateTime(2024, 7, 1, 0, 0, 0)
+    end = UTCDateTime(2024, 7, 31, 0, 0, 0)
     log.info(f'Query start time: {start}')
     log.info(f'Query end time: {end}')
     # some test start/ends that are 'safe' for testing the directory 
@@ -122,11 +122,11 @@ if __name__ == '__main__':
                         runtime = timer_end - timer_start
                         log.info(f'Request took {runtime:4.2f} seconds')
                     except Exception as e:
-                        log.exception(f'Handling Exception {e.__name__}. Try hourly chunks')
+                        log.exception(f'Handling Exception {e}. Try hourly chunks')
                         try:
                            hour_by_hour_query(request, chunk_start)
                         except:
-                            log.error(f'Exception {e.__name__} could not be handled, move to next day')
+                            log.error(f'Exception {e} could not be handled, move to next day')
 
                         chunk_start +=  day_shift
                         continue
