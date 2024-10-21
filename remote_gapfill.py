@@ -73,13 +73,13 @@ nym_zt_ips = {'NYM1':'172.24.59.19', 'NYM2':'172.24.239.162',
 ######### Start of variable to set #############
 
 network = "OX"
-station_list = ['NYM6']
-channel_list = ['HHE'] 
+station_list = ['NYM2']
+channel_list = ['HHE','HHN','HHZ'] 
 #SET TO CORRECT CODE. should be '00' for veloctity data
 # will be somehing different for voltage, check status page (https://{your-ip-here})
 location = "00" 
 # try to get previous 2 days of data (current day will not be available)
-day_list = [UTCDateTime(2024, 6, 25, 0, 0, 0)]
+day_list = [UTCDateTime(2024, 8, i, 0, 0, 0) for i in range(1,5)]
 
 if len(station_list) == len(channel_list) == len(day_list):
 
