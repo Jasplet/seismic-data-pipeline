@@ -55,7 +55,7 @@ def make_request(station_ip, request, start, end):
 
 if __name__ == '__main__':
     script_start = timeit.default_timer()
-    logging.basicConfig(filename='/home/joseph/logs/nymar_backfill.log', level=logging.INFO)
+    logging.basicConfig(filename='/home/joseph/logs/test_nymar_backfill.log', level=logging.INFO)
     log.info(f'Starting download. Time is {datetime.datetime.now()}')
 
     nym_zt_ips = {'NYM1':'172.24.59.19', 'NYM2':'172.24.239.162',
@@ -67,13 +67,14 @@ if __name__ == '__main__':
 
     network = "OX"
     station_list = ['NYM1','NYM3','NYM4','NYM5','NYM6','NYM7','NYM8']
-    channels = ["HHZ",  "HHN", "HHE"] 
+    channels = ["HHZ",  "HHN", "HHE"]
+    station_list = ['NYM2']
     #SET TO CORRECT CODE. should be '00' for veloctity data
     # will be somehing different for voltage, check status page (https://{your-ip-here})
     location = "00" 
     # try to get previous 2 days of data (current day will not be available)
     start = UTCDateTime(2024, 7, 1, 0, 0, 0)
-    end = UTCDateTime(2024, 7, 31, 0, 0, 0)
+    end = UTCDateTime(2024, 7, 2, 0, 0, 0)
     log.info(f'Query start time: {start}')
     log.info(f'Query end time: {end}')
     # some test start/ends that are 'safe' for testing the directory 
