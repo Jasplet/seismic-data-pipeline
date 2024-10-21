@@ -55,6 +55,8 @@ def make_request(station_ip, request, start, end):
     else:
         log.erro(f'Request failed with status code: {r.status_code}')
 
+    return r
+
 if __name__ == '__main__':
     script_start = timeit.default_timer()
     logging.basicConfig(filename='/home/joseph/logs/nymar_backfill.log', level=logging.INFO)

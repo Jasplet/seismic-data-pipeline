@@ -54,7 +54,7 @@ def make_request(station_ip, request, start, end):
     else:
         log.erro(f'Request failed with status code: {r.status_code}')
 
-
+    return r
 
 if __name__ == '__main__':
     today = datetime.datetime.today()
