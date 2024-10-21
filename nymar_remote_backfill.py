@@ -112,6 +112,7 @@ if __name__ == '__main__':
                 # Make filename to wirte out to
                 outfile = Path(ddir, f"{request}.{year}{month:02d}{day:02d}T{hour:02d}0000.mseed")
                 #Test if we have already downloaded this chunk
+                # check if file has data in (> 0 bytes)
                 if outfile.is_file():
                     log.info(f'Data chunk {outfile} exists')
                 else:
