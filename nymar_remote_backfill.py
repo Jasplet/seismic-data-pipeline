@@ -22,8 +22,6 @@ def hour_by_hour_query(request, query_date):
     while chunk_start < end:
         query_start = chunk_start - 150
         query_end = chunk_end + 150
-        startUNIX = query_start.timestamp
-        endUNIX = query_end.timestamp
         year = chunk_start.year
         month = chunk_start.month
         day = chunk_start.day
@@ -35,23 +33,29 @@ def hour_by_hour_query(request, query_date):
             log.info(f'Data chunk {outfile} exists')
         else:
             try:
-                timer_start = timeit.default_timer()
-                #time.sleep(5) # for testing directory creation
-            
-                r = requests.get(f"http://{station_ip}:8080/data?channel={request}&from={startUNIX}&to={endUNIX}", f"{outfile}")
-                with open(outfile, "wb") as f:
-                    f.write(r.content)
-            
-                timer_end = timeit.default_timer()
-                runtime = timer_end - timer_start
-                log.info(f'Request took {runtime:4.2f} seconds')
+                make_request(station_ip, request, query_start, query_end)
             except:
                 log.error(f'Unable to request hour {hour}')
 
         chunk_start += day_shift
         # Iterate otherwise we will have an infinite loop!
 
-# __main__ 
+def make_request(station_ip, request, start, end):
+
+    startUNIX = start.timestamp
+    endUNIX = end.timestamp
+    r = requests.get(f"http://{station_ip}:8080/data?channel={request}&from={startUNIX}&to={endUNIX}")
+    if r.status_code == 200:    
+        log.info(f'Request elapsed time {r.elapsed}')
+        if r.content:
+            with open(outfile, "wb") as f:
+                f.write(r.content)
+        else:
+            log.error('Request is empty! Wont write a zero byte file')
+    else:
+        log.erro(f'Request failed with status code: {r.status_code}')
+
+    return r
 
 if __name__ == '__main__':
     script_start = timeit.default_timer()
@@ -100,8 +104,6 @@ if __name__ == '__main__':
             # add a 2.5 minute buffer either side of date query to reduce gap risk
             query_start = chunk_start - 150
             query_end = chunk_end + 150
-            startUNIX = query_start.timestamp
-            endUNIX = query_end.timestamp
             year = chunk_start.year
             month = chunk_start.month
             day = chunk_start.day
@@ -113,15 +115,13 @@ if __name__ == '__main__':
                 # Make filename to wirte out to
                 outfile = Path(ddir, f"{request}.{year}{month:02d}{day:02d}T{hour:02d}0000.mseed")
                 #Test if we have already downloaded this chunk
+                # check if file has data in (> 0 bytes)
                 if outfile.is_file():
                     log.info(f'Data chunk {outfile} exists')
                 else:
                     try:
-                        timer_start = timeit.default_timer()
-                        r = requests.get(f"http://{station_ip}:8080/data?channel={request}&from={startUNIX}&to={endUNIX}", f"{outfile}")
-                        timer_end = timeit.default_timer()
-                        runtime = timer_end - timer_start
-                        log.info(f'Request took {runtime:4.2f} seconds')
+                        response = make_request(station_ip, request, query_start, query_end)
+                        
                     except Exception as e:
                         log.exception(f'Handling Exception {e}. Try hourly chunks')
                         try:
