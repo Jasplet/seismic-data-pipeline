@@ -42,16 +42,18 @@ def hour_by_hour_query(request, query_date):
 
 def make_request(station_ip, request, start, end):
 
-    startUNIX = query_start.timestamp
-    endUNIX = query_end.timestamp
+    startUNIX = start.timestamp
+    endUNIX = end.timestamp
     r = requests.get(f"http://{station_ip}:8080/data?channel={request}&from={startUNIX}&to={endUNIX}")
-    log.info(f'Request elapsed time {r.elapsed}')
-    log.info(r.content)
-    if r.text != "":
-        with open(outfile, "wb") as f:
-            f.write(r.content)
+    if r.status_code == 200:    
+        log.info(f'Request elapsed time {r.elapsed}')
+        if r.content:
+            with open(outfile, "wb") as f:
+                f.write(r.content)
+        else:
+            log.error('Request is empty! Wont write a zero byte file')
     else:
-        log.error('Request is empty! Wont write a zero byte file')
+        log.erro(f'Request failed with status code: {r.status_code}')
 
 if __name__ == '__main__':
     script_start = timeit.default_timer()
