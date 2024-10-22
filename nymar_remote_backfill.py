@@ -44,7 +44,12 @@ def make_request(station_ip, request, start, end):
 
     startUNIX = start.timestamp
     endUNIX = end.timestamp
-    r = requests.get(f"http://{station_ip}:8080/data?channel={request}&from={startUNIX}&to={endUNIX}")
+    try:
+        r = requests.get(f"http://{station_ip}:8080/data?channel={request}&from={startUNIX}&to={endUNIX}")
+    except ConnectionError as error:
+        log.exception(f'ConnectionError for http://{station_ip}:8080/data?channel={request}&from={startUNIX}&to={endUNIX}')
+        return
+
     if r.status_code == 200:    
         log.info(f'Request elapsed time {r.elapsed}')
         if r.content:
@@ -53,7 +58,7 @@ def make_request(station_ip, request, start, end):
         else:
             log.error('Request is empty! Wont write a zero byte file')
     else:
-        log.erro(f'Request failed with status code: {r.status_code}')
+        log.error(f'Request failed with status code: {r.status_code}')
 
     return r
 
@@ -123,11 +128,11 @@ if __name__ == '__main__':
                         response = make_request(station_ip, request, query_start, query_end)
                         
                     except Exception as e:
-                        log.exception(f'Handling Exception {e}. Try hourly chunks')
+                        log.exception(f'Handling Exception. Try hourly chunks')
                         try:
                            hour_by_hour_query(request, chunk_start)
                         except:
-                            log.error(f'Exception {e} could not be handled, move to next day')
+                            log.error(f'Exception could not be fixed by hourly chunking, move to next day')
 
                         chunk_start +=  day_shift
                         continue
