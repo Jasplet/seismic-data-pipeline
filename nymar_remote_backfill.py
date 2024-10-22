@@ -76,14 +76,13 @@ if __name__ == '__main__':
 
     network = "OX"
     station_list = ['NYM2','NYM3','NYM5','NYM6','NYM7','NYM8']
-    #station_list = ['NYM2']
-    channels = ["HHZ",  "HHN", "HHE"] 
+    channels = ["HHZ",  "HHN", "HHE"]
     #SET TO CORRECT CODE. should be '00' for veloctity data
     # will be somehing different for voltage, check status page (https://{your-ip-here})
     location = "00" 
     # try to get previous 2 days of data (current day will not be available)
-    start = UTCDateTime(2024, 10, 13, 0, 0, 0)
-    end = UTCDateTime(2024, 10, 16, 0, 0, 0)
+    start = UTCDateTime(2024, 10, 15, 0, 0, 0)
+    end = UTCDateTime(2024, 10, 20, 0, 0, 0)
     log.info(f'Query start time: {start}')
     log.info(f'Query end time: {end}')
     # some test start/ends that are 'safe' for testing the directory 
