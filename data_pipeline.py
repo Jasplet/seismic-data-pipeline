@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 # functions
 
-def form_request(sensor_ip, network, station, location, channel, starttime, endtime)
+def form_request(sensor_ip, network, station, location, channel, starttime, endtime):
     '''
     Form the request url 
 
@@ -37,7 +37,9 @@ def form_request(sensor_ip, network, station, location, channel, starttime, endt
     endtime : obspy.UTCDataTime
         End time of request
     '''
-    
+    if startime > endtime:
+        raise ValueError('Start of request if before the end!')
+
     seed_params = f'{network}.{station}.{location}.{channel}'
     request = f'http://{sensor_ip}/data?channel={seed_params}&from={starttime.timestamp}&to={endtime.timestamp}'
 
