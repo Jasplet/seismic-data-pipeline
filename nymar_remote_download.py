@@ -52,7 +52,7 @@ def make_request(station_ip, request, start, end):
         else:
             log.error('Request is empty! Wont write a zero byte file')
     else:
-        log.erro(f'Request failed with status code: {r.status_code}')
+        log.error(f'Request failed with status code: {r.status_code}')
 
     return r
 
