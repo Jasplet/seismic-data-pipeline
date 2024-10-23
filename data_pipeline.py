@@ -16,7 +16,34 @@ log = logging.getLogger(__name__)
 
 # functions
 
-def hour_by_hour_query(request, query_date):
+def form_request(sensor_ip, network, station, location, channel, starttime, endtime)
+    '''
+    Form the request url 
+
+    Parameters:
+    ----------
+    sensor_ip : str
+        IP address of sensor. Includes port no if any port forwarding needed
+    network : str
+        Network code
+    station : str
+        Station code
+    location : str
+        Location code
+    channel : str
+        Channel code
+    starttime : obspy.UTCDateTime
+        Start time of request
+    endtime : obspy.UTCDataTime
+        End time of request
+    '''
+    
+    seed_params = f'{network}.{station}.{location}.{channel}'
+    request = f'http://{sensor_ip}/data?channel={seed_params}&from={starttime.timestamp}&to={endtime.timestamp}'
+
+    return request
+
+def chunked_data_query(request, query_date):
 
     hour_shift = datetime.timedelta(hours=1)
     end = query_date + datetime.timedelta(days=1)
