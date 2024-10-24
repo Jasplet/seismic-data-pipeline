@@ -124,7 +124,9 @@ def make_request(request_url, outfile):
         Filename (including full path) to write out to
     '''
     try:
+        log.info(f'Request: {request_url}')
         r = requests.get(request_url, stream=True)
+
         log.info(f'Request elapsed time {r.elapsed}')
         #raise HTTP error for 4xx/5xx errors
         r.raise_for_status()
@@ -136,7 +138,7 @@ def make_request(request_url, outfile):
         with open(outfile, "wb") as f:
             f.write(r.content)
     except requests.exceptions.RequestException as e:
-        log.error(f'GET requst failed with error {e}')
+        log.error(f'GET request failed with error {e}')
     
     return
 
