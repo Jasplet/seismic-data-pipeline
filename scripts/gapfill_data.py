@@ -52,7 +52,7 @@ if __name__ == '__main__':
     data_dir = Path.cwd()
     # Provide IP addresses. Here I have stored them in a JSON file to keep
     # them off GitHub.
-    with open('/Users/eart0593/Projects/Agile/NYMAR/nymar_zerotier_ips.json','r') as w:
+    with open('/home/joseph/nymar_zerotier_ips.json','r') as w:
         ips_dict = json.load(w)
     
     # Set up request parameters here. This is an example only. You may want
