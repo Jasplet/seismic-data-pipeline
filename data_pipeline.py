@@ -6,9 +6,8 @@
 
 
 from pathlib import Path
-from obspy import UTCDateTime
+import glob
 import obspy
-import timeit
 import datetime
 import requests
 import logging
@@ -98,16 +97,16 @@ def chunked_data_query(sensor_ip, network, station, location,
 
         ddir = Path(f'{data_dir}/{year}/{month:02d}/{day:02d}')
         seed_params = f'{network}.{station}.{location}.{channel}'
-        outfile = Path(ddir, f"{seed_params}.{year}{month:02d}{day:02d}T{hour:02d}{mins:02d}{sec:02d}_.mseed")
+        outfile = ddir / f"{seed_params}.{year}{month:02d}{day:02d}T{hour:02d}{mins:02d}{sec:02d}.mseed"
         if outfile.is_file():
             log.info(f'Data chunk {outfile} exists')
             continue
         else:
             request_url = form_request(sensor_ip, network, station, location,
-                                       channel, starttime, endtime)
+                                       channel, query_start, query_end)
             make_request(request_url, outfile)
 
-        # Iterate otherwise we will have an infinite loop!
+    return
 
 def make_request(request_url, outfile):
     '''
@@ -140,3 +139,59 @@ def make_request(request_url, outfile):
         log.error('GET requst failed with error {e}')
     
     return
+
+def gather_chunks(network, station, location, channel,
+                  starttime, endtime, data_dir, gather_size=datetime.timedelta(days=1),
+                  file_format='MSEED'):
+    '''
+    Function to gather all chunks of data pulled from server and gather then into
+    larger files
+
+    Parameters:
+    ----------
+    starttime : obspy.UTCDateTime
+        Start time of period to gather
+    endtime : obspy.UTCDateTime
+        End time of period to gather
+    gather_size : datetime.timedelta
+        Time period of gathers. Default is one day (i.e, all data in a day will be gathered)
+    '''
+    if data_dir == '':
+        data_dir = Path.cwd()
+
+    for gather_start in iterate_chunks(starttime, endtime, gather_size):
+        year = gather_start.year
+        month = gather_start.month
+        day = gather_start.day
+        hour = gather_start.hour
+        mins = gather_start.minute
+        sec = gather_start.second
+        ddir = Path(f'{data_dir}/{year}/{month:02d}/{day:02d}')
+        seed_params = f'{network}.{station}.{location}.{channel}'
+        if gather_size.days == 1:
+            # Want to read all files in that day
+            files = ddir / f"{seed_params}.{year}{month:02d}{day:02d}T*.mseed"
+        elif gather_size.second == 3600:
+            # Hour gather 
+            files = ddir / f"{seed_params}.{year}{month:02d}{day:02d}T{hour:02d}*.mseed"
+        elif gather_size.second == 60:
+            # Minute gather 
+            files = ddir / f"{seed_params}.{year}{month:02d}{day:02d}T{hour:02d}{mins:02d}*.mseed"
+        else:
+            raise ValueError(f'Gather {gather_size} not supported. Must be day, hour, or minute.')
+        
+        gathered_st = obspy.read(files)
+        # Merge traces with no gap filling (this is the default beavhiour of st.merge())
+        gathered_st.merge(method=0, fill_value=None)
+        log.info(f'Merge complete for files on {gather_start}, gather size {gather_size}')
+        # Now clean up the chunked_files and write out our shiny new one!
+        for f in glob.glob(files):
+            path_f = Path(f)
+            path_f.unlink(missing_ok=True)
+        # Write out. Convention here is that file names describe seed codes and the START time of the file.
+        # I will try to support writing as all file types support by obspy.
+        # N.B for SAC files this will default to small-endian files and will need byte-swapping
+        # for use with MacSAC 
+        format_ext = file_format.lower()
+        outfile = ddir / f"{seed_params}.{year}{month:02d}{day:02d}T{hour:02d}{mins:02d}{sec:02d}.{format_ext}"
+        gathered_st.write(outfile, format=file_format')
