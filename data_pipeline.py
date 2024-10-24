@@ -188,7 +188,7 @@ def gather_chunks(network, station, location, channel,
             log.error(f'No files matching {filestem}')
             continue
         # Merge traces with no gap filling (this is the default beavhiour of st.merge())
-        gathered_st.merge(method=0, fill_value=None)
+        gathered_st.merge(method=0, fill_value=0)
         log.info(f'Merge complete for files on {gather_start}, gather size {gather_size}')
         # Now clean up the chunked_files and write out our shiny new one!
         for f in ddir.glob(filestem):
