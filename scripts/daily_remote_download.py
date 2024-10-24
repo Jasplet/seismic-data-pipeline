@@ -17,7 +17,7 @@ import json
 import logging
 import itertools
 
-from ..data_pipeline import chunked_data_query, gather_chunks
+from data_pipeline import chunked_data_query, gather_chunks
 
 log = logging.getLogger(__name__)
 logdir = Path('home/joseph/logs')
