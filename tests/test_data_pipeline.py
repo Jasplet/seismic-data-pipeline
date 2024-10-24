@@ -1,11 +1,12 @@
 import unittest
 import pytest
-from data_pipeline import form_request
+import datetime
+from data_pipeline import form_request, iterate_chunks
 from obspy import UTCDateTime
 
 class TestFormRequest(unittest.TestCase):
     def test_form_request_valid(self):
-    # Example input data
+    # Testinput data
         sensor_ip = "192.168.1.1:8080"
         network = "XX"
         station = "ABC"
@@ -24,7 +25,7 @@ class TestFormRequest(unittest.TestCase):
         self.assertEqual(actual_url, expected_url)
     
     def test_form_request_invalid_time(self):
-    # Example input data
+    # Test input data
         sensor_ip = "192.168.1.1:8080"
         network = "XX"
         station = "ABC"
@@ -38,5 +39,15 @@ class TestFormRequest(unittest.TestCase):
                          channel, starttime, endtime)
 
 
+class TestIterateChunks(unittest.TestCase):
+
+    def test_day_iterator(self):
+        test_start = UTCDateTime(2030,10,1,0,0,0)
+        test_end = UTCDateTime(2030, 10,7,0,0)
+        chunk = datetime.timedelta(days=1)
+
+        for i, date in enumerate(iterate_chunks(test_start, test_end, chunk)):
+            self.assertEqual(date, test_start + datetime.timedelta(days=i))
+        
 if __name__ == '__main__':
     unittest.main()
