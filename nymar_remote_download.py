@@ -7,139 +7,63 @@ from pathlib import Path
 from obspy import UTCDateTime
 import timeit
 import datetime
-import requests
+import json
 import logging
+import itertools
+
+from data_pipeline import chunked_data_query
+
 log = logging.getLogger(__name__)
-
-
-def hour_by_hour_query(request, query_date):
-
-    hour_shift = datetime.timedelta(hours=1)
-    end = query_date + datetime.timedelta(days=1)
-    chunk_start = query_date 
-    chunk_end = query_date + hour_shift
-    while chunk_start < end:
-        query_start = chunk_start - 150
-        query_end = chunk_end + 150
-        year = chunk_start.year
-        month = chunk_start.month
-        day = chunk_start.day
-        hour = chunk_start.hour
-
-        ddir = Path(f'{path_cwd}/{year}/{month:02d}/{day:02d}')
-        outfile = Path(ddir, f"{request}.{year}{month:02d}{day:02d}T{hour:02d}0000_tmp.mseed")
-        if outfile.is_file():
-            log.info(f'Data chunk {outfile} exists')
-        else:
-            try:
-                make_request(station_ip, request, query_start, query_end)
-            except:
-                log.error(f'Unable to request hour {hour}')
-
-        chunk_start += day_shift
-        # Iterate otherwise we will have an infinite loop!
-
-def make_request(station_ip, request, start, end):
-
-    startUNIX = start.timestamp
-    endUNIX = end.timestamp
-    r = requests.get(f"http://{station_ip}:8080/data?channel={request}&from={startUNIX}&to={endUNIX}")
-    if r.status_code == 200:    
-        log.info(f'Request elapsed time {r.elapsed}')
-        if r.content:
-            with open(outfile, "wb") as f:
-                f.write(r.content)
-        else:
-            log.error('Request is empty! Wont write a zero byte file')
-    else:
-        log.error(f'Request failed with status code: {r.status_code}')
-
-    return r
+logdir = Path('home/joseph/logs')
+# test is logdir exists, if not then set to cwd
+if logdir.exists():
+    print(f'Logs written to {logdir}')
+else:
+    logdir = Path.cwd()
+    print(f'Logs written to cwd')
 
 if __name__ == '__main__':
     today = datetime.datetime.today()
     script_start = timeit.default_timer()
-    logging.basicConfig(filename=f'/home/joseph/logs/nymar_remote_download_{today.year}_{today.month:02d}_{today.day:02d}.log',
+    logging.basicConfig(filename=f'{logdir}/nymar_remote_download_{today.year}_{today.month:02d}_{today.day:02d}.log',
                         level=logging.INFO)
     log.info(f'Starting download. Time is {datetime.datetime.now()}')
 
-    nym_zt_ips = {'NYM1':'172.24.59.19', 'NYM2':'172.24.239.162',
-                'NYM3':'172.24.40.146', 'NYM4':'172.24.77.181',
-                'NYM5':'172.24.43.200', 'NYM6':'172.24.150.216',
-                'NYM7':'172.24.194.185', 'NYM8':'172.24.3.251' }
-
     ######### Start of variable to set #############
+    # directory to write data to
+    data_dir = Path('home/joseph/data') # change to /your/path/here
+    # Provide IP addresses. Here I have stored them in a JSON file to keep
+    # them off GitHub.
+    with open('nymar_zerotier_ips.json','r') as w:
+        ips_dict = json.load(w)
 
-    network = "OX"
+    # Seedlink Parameters 
+    network = ["OX"]
     station_list = ['NYM1','NYM2','NYM3','NYM4','NYM5','NYM6','NYM7','NYM8']
     channels = ["HHZ",  "HHN", "HHE"] 
     #SET TO CORRECT CODE. should be '00' for veloctity data
     # will be somehing different for voltage, check status page (https://{your-ip-here})
-    location = "00" 
+    location = ["00"]
     # set start / end date. 
-
+    request_params = itertools.product(network, station_list, location, channels)
+    
     # try to get previous 2 days of data (current day will not be available)
     start = UTCDateTime(today.year, today.month, today.day - 2, 0, 0, 0)
     end = UTCDateTime(today.year, today.month, today.day, 0, 0, 0)
     log.info(f'Query start time: {start}')
     log.info(f'Query end time: {end}')
-    # some test start/ends that are 'safe' for testing the directory 
-    # creation and file handling. uncomment if needed.
-    # also dont forget to comment OUT the wget command as this data
-    # does not (or should not) exist, reducing the risk we accidentally remove data files
-    # start = UTCDateTime("3023-01-01T00:00:00")
-    # end = UTCDateTime("3023-01-02T00:00:00")
     ########### End of variables to set ###########
 
-    for station in station_list:
-        log.info(f'Request data for {station}')
-        day_shift = datetime.timedelta(days=1)
-        chunk_start = start
-        chunk_end = start + day_shift
-        station_ip = nym_zt_ips[station]
-        # path_cwd = Path('/Volumes/NYMAR_DATA/NYMAR/data_dump') / station
-        path_cwd = Path('/home/joseph/data')
-        # keep requesting hour chunks of data until 
-        # query start time reaches the end time
-        while chunk_start < end:
-            chunk_end = chunk_start + day_shift
-            # add a 2.5 minute buffer either side of date query to reduce gap risk
-            query_start = chunk_start - 150
-            query_end = chunk_end + 150
-            startUNIX = query_start.timestamp
-            endUNIX = query_end.timestamp
-            year = chunk_start.year
-            month = chunk_start.month
-            day = chunk_start.day
-            hour = chunk_start.hour
-            ddir = Path(f'{path_cwd}/{year}/{month:02d}/{day:02d}')
-            ddir.mkdir(exist_ok=True, parents=True)
-            for channel in channels:
-                request = f"{network}.{station}.{location}.{channel}"
-                # Make filename to wirte out to
-                outfile = Path(ddir, f"{request}.{year}{month:02d}{day:02d}T{hour:02d}0000.mseed")
-                #Test if we have already downloaded this chunk
-                # check if file has data in (> 0 bytes)
-                if outfile.is_file():
-                    log.info(f'Data chunk {outfile} exists')
-                else:
-                    try:
-                        response = make_request(station_ip, request, query_start, query_end)
-                        
-                    except Exception as e:
-                        log.exception(f'Handling Exception {e}. Try hourly chunks')
-                        try:
-                           hour_by_hour_query(request, chunk_start)
-                        except:
-                            log.error(f'Exception {e} could not be handled, move to next day')
-
-                        chunk_start +=  day_shift
-                        continue
-
-                # Iterate otherwise we will have an infinite loop!
-            chunk_start += day_shift
-            
-    # Get dataless (not really neccesary but its nice)
+    for params in request_params:
+        # params should be form (net, stat, loc, channel)
+        log.info(f'Request data for {params}')
+        station_ip = ips_dict[params[1]]
+    
+        chunked_data_query(station_ip, network=params[0], station=params[1],
+                           location=params[2], channel=params[3],
+                           starttime=start, endtime=end,
+                           data_dir=data_dir, chunksize=datetime.timedelta(hours=1),
+                           buffer=datetime.timedelta(seconds=150))
 
     script_end = timeit.default_timer()
     runtime = script_end - script_start
