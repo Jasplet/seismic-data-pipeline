@@ -170,22 +170,22 @@ def gather_chunks(network, station, location, channel,
         seed_params = f'{network}.{station}.{location}.{channel}'
         if gather_size.days == 1:
             # Want to read all files in that day
-            files = ddir / f"{seed_params}.{year}{month:02d}{day:02d}T*.mseed"
+            filestem = f"{seed_params}.{year}{month:02d}{day:02d}T*.mseed"
         elif gather_size.second == 3600:
             # Hour gather 
-            files = ddir / f"{seed_params}.{year}{month:02d}{day:02d}T{hour:02d}*.mseed"
+            filestem = f"{seed_params}.{year}{month:02d}{day:02d}T{hour:02d}*.mseed"
         elif gather_size.second == 60:
             # Minute gather 
-            files = ddir / f"{seed_params}.{year}{month:02d}{day:02d}T{hour:02d}{mins:02d}*.mseed"
+            filesten = f"{seed_params}.{year}{month:02d}{day:02d}T{hour:02d}{mins:02d}*.mseed"
         else:
             raise ValueError(f'Gather {gather_size} not supported. Must be day, hour, or minute.')
         
-        gathered_st = obspy.read(files)
+        gathered_st = obspy.read(f'{ddir}/{filestem}')
         # Merge traces with no gap filling (this is the default beavhiour of st.merge())
         gathered_st.merge(method=0, fill_value=None)
         log.info(f'Merge complete for files on {gather_start}, gather size {gather_size}')
         # Now clean up the chunked_files and write out our shiny new one!
-        for f in glob.glob(files):
+        for f in ddir.glob(filestem):
             path_f = Path(f)
             path_f.unlink(missing_ok=True)
         # Write out. Convention here is that file names describe seed codes and the START time of the file.
