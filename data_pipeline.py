@@ -131,7 +131,7 @@ def make_request(request_url, outfile):
         #raise HTTP error for 4xx/5xx errors
         r.raise_for_status()
         # Check if we get data 
-        if len(r.content) > 0:
+        if len(r.content) == 0:
             log.error('Request is empty! Won’t write a zero byte file.')
             return
         # Now write data
