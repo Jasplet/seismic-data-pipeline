@@ -1,7 +1,13 @@
 # Author: J Asplet, U of Oxford, 20/11/2023
 
 ## Python script to remotely query data from NYMAR array stations
-## We are using Wget as implemented in the requests library 
+## We are using Wget as implemented in the requests library
+## This script is designed to be run as a cron job to send daily requests to
+## remotely installed Certimus/Minimus to get data
+## Data is requested in hourly chunks and then recombined into a day length miniSEED file
+
+## Some editing of this script could make it request minute chunks (for a whole day) or
+## make hourly / minutely requests for data 
 
 from pathlib import Path
 from obspy import UTCDateTime
@@ -41,6 +47,11 @@ if __name__ == '__main__':
     network = ["OX"]
     station_list = ['NYM1','NYM2','NYM3','NYM4','NYM5','NYM6','NYM7','NYM8']
     channels = ["HHZ",  "HHN", "HHE"] 
+
+    # Set number of days to downlaod (for preliminary gapfilling)
+    backfill_span = datetime.timedelta(days=2)
+    #  backfill_span = datetime.timedelta(hours=2)
+
     #SET TO CORRECT CODE. should be '00' for veloctity data
     # will be somehing different for voltage, check status page (https://{your-ip-here})
     location = ["00"]
@@ -48,8 +59,9 @@ if __name__ == '__main__':
     request_params = itertools.product(network, station_list, location, channels)
     
     # try to get previous 2 days of data (current day will not be available)
-    start = UTCDateTime(today.year, today.month, today.day - 2, 0, 0, 0)
-    end = UTCDateTime(today.year, today.month, today.day, 0, 0, 0)
+    # Here we want to iterate over the preding days, so truncate the today datetime object
+    start = UTCDateTime(today.year, today.month, today.day) - backfill_span
+    end = UTCDateTime(today.year, today.month, today.day)
     log.info(f'Query start time: {start}')
     log.info(f'Query end time: {end}')
     ########### End of variables to set ###########
