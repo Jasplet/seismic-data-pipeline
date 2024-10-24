@@ -194,4 +194,4 @@ def gather_chunks(network, station, location, channel,
         # for use with MacSAC 
         format_ext = file_format.lower()
         outfile = ddir / f"{seed_params}.{year}{month:02d}{day:02d}T{hour:02d}{mins:02d}{sec:02d}.{format_ext}"
-        gathered_st.write(outfile, format=file_format')
+        gathered_st.write(outfile, format=file_format)
