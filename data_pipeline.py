@@ -83,7 +83,7 @@ def chunked_data_query(sensor_ip, network, station, location,
     #If data dir is empty then use current directory
     if data_dir == '':
         data_dir = Path.cwd()
-
+    
     for chunk_start in iterate_chunks(starttime, endtime, chunksize):
         # Add 150 seconds buffer on either side
         query_start = chunk_start - buffer
