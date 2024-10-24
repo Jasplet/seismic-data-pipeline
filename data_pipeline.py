@@ -136,7 +136,7 @@ def make_request(request_url, outfile):
         with open(outfile, "wb") as f:
             f.write(r.content)
     except requests.exceptions.RequestException as e:
-        log.error('GET requst failed with error {e}')
+        log.error(f'GET requst failed with error {e}')
     
     return
 
