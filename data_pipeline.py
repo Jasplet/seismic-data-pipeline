@@ -179,8 +179,11 @@ def gather_chunks(network, station, location, channel,
             filesten = f"{seed_params}.{year}{month:02d}{day:02d}T{hour:02d}{mins:02d}*.mseed"
         else:
             raise ValueError(f'Gather {gather_size} not supported. Must be day, hour, or minute.')
-        
-        gathered_st = obspy.read(f'{ddir}/{filestem}')
+        try:
+            gathered_st = obspy.read(f'{ddir}/{filestem}')
+        except:
+            log.error(f'No files matching {filestem}')
+            continue
         # Merge traces with no gap filling (this is the default beavhiour of st.merge())
         gathered_st.merge(method=0, fill_value=None)
         log.info(f'Merge complete for files on {gather_start}, gather size {gather_size}')
