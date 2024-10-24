@@ -11,56 +11,6 @@ import requests
 import logging
 log = logging.getLogger(__name__)
 
-# functions
-
-def hour_by_hour_query(request, query_date):
-
-    hour_shift = datetime.timedelta(hours=1)
-    end = query_date + datetime.timedelta(days=1)
-    chunk_start = query_date 
-    chunk_end = query_date + hour_shift
-    while chunk_start < end:
-        query_start = chunk_start - 150
-        query_end = chunk_end + 150
-        year = chunk_start.year
-        month = chunk_start.month
-        day = chunk_start.day
-        hour = chunk_start.hour
-
-        ddir = Path(f'{path_cwd}/{year}/{month:02d}/{day:02d}')
-        outfile = Path(ddir, f"{request}.{year}{month:02d}{day:02d}T{hour:02d}0000_tmp.mseed")
-        if outfile.is_file():
-            log.info(f'Data chunk {outfile} exists')
-        else:
-            try:
-                make_request(station_ip, request, query_start, query_end)
-            except:
-                log.error(f'Unable to request hour {hour}')
-
-        chunk_start += day_shift
-        # Iterate otherwise we will have an infinite loop!
-
-def make_request(station_ip, request, start, end):
-
-    startUNIX = start.timestamp
-    endUNIX = end.timestamp
-    try:
-        r = requests.get(f"http://{station_ip}:8080/data?channel={request}&from={startUNIX}&to={endUNIX}")
-    except ConnectionError as error:
-        log.exception(f'ConnectionError for http://{station_ip}:8080/data?channel={request}&from={startUNIX}&to={endUNIX}')
-        return
-
-    if r.status_code == 200:    
-        log.info(f'Request elapsed time {r.elapsed}')
-        if r.content:
-            with open(outfile, "wb") as f:
-                f.write(r.content)
-        else:
-            log.error('Request is empty! Wont write a zero byte file')
-    else:
-        log.error(f'Request failed with status code: {r.status_code}')
-
-    return r
 
 if __name__ == '__main__':
     script_start = timeit.default_timer()
