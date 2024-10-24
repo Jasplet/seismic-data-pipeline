@@ -96,6 +96,7 @@ def chunked_data_query(sensor_ip, network, station, location,
         sec = chunk_start.second
 
         ddir = Path(f'{data_dir}/{year}/{month:02d}/{day:02d}')
+        ddir.mkdir(exist_ok=True, parents=True)
         seed_params = f'{network}.{station}.{location}.{channel}'
         outfile = ddir / f"{seed_params}.{year}{month:02d}{day:02d}T{hour:02d}{mins:02d}{sec:02d}.mseed"
         if outfile.is_file():
