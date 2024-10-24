@@ -20,7 +20,7 @@ import itertools
 from data_pipeline import chunked_data_query, gather_chunks
 
 log = logging.getLogger(__name__)
-logdir = Path('home/joseph/logs')
+logdir = Path('/home/joseph/logs')
 # test is logdir exists, if not then set to cwd
 if logdir.exists():
     print(f'Logs written to {logdir}')
@@ -37,10 +37,10 @@ if __name__ == '__main__':
 
     ######### Start of variable to set #############
     # directory to write data to
-    data_dir = Path('home/joseph/data') # change to /your/path/here
+    data_dir = Path('/home/joseph/data') # change to /your/path/here
     # Provide IP addresses. Here I have stored them in a JSON file to keep
     # them off GitHub.
-    with open('nymar_zerotier_ips.json','r') as w:
+    with open('/home/joseph/nymar_zerotier_ips.json','r') as w:
         ips_dict = json.load(w)
 
     # Seedlink Parameters 
