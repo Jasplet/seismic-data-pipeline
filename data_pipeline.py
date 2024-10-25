@@ -130,7 +130,8 @@ def make_request(request_url, outfile):
 
         log.info(f'Request elapsed time {r.elapsed}')
         #raise HTTP error for 4xx/5xx errors
-        r.raise_for_status()
+        if r.status_code != 200:
+            raise requests.exceptions.HTTPError
         # Check if we get data 
         if len(r.content) == 0:
             log.error('Request is empty! Won’t write a zero byte file.')
@@ -140,7 +141,9 @@ def make_request(request_url, outfile):
             f.write(r.content)
     except requests.exceptions.RequestException as e:
         log.error(f'GET request failed with error {e}')
-    
+    except requests.exceptions.HTTPError as e:
+        log.error(f'GET request failed with HTTPError {e}')
+
     return
 
 def gather_chunks(network, station, location, channel,
