@@ -6,6 +6,7 @@ setup(
     description="Data pipelining for remote Certimus deployments",
     author="Joseph Asplet",
     author_email="joseph.asplet@earth.ox.ac.uk",
+    insitution="University of Oxford"
     url="https://github.com/Jasplet/nymar-data-pipeline",  # URL to the project's repository (if available)
     
     # Automatically find all packages (folders with __init__.py) in your project
@@ -18,7 +19,7 @@ setup(
     install_requires=[
         "numpy>=1.26.4",          # Example of a required package
         "obspy>=1.4.1",    # Specify version ranges, e.g., pandas 1.0 or higher
-        # Add other dependencies your project needs
+        "requests>=2.32.3"
     ],
 
     # Classifiers for metadata, useful for PyPI (optional, but recommended)

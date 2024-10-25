@@ -6,7 +6,6 @@
 
 
 from pathlib import Path
-import glob
 import obspy
 import datetime
 import requests
@@ -36,6 +35,7 @@ def form_request(sensor_ip, network, station, location, channel, starttime, endt
     endtime : obspy.UTCDataTime
         End time of request
     '''
+
     if starttime > endtime:
         raise ValueError('Start of request if before the end!')
 

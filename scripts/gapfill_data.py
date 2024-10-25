@@ -26,7 +26,6 @@ import timeit
 import datetime
 import json
 import logging
-import itertools
 
 from data_pipeline import chunked_data_query, gather_chunks
 
