@@ -1,20 +1,22 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="nymar_data_pipeline",         # Name of the project (should be unique)
-    version="0.1.0",                  # Version of your project
+    name="nymar_data_pipeline",
+    version="0.1.0",
     description="Data pipelining for remote Certimus deployments",
     author="Joseph Asplet",
     author_email="joseph.asplet@earth.ox.ac.uk",
-    insitution="University of Oxford"
-    url="https://github.com/Jasplet/nymar-data-pipeline",  # URL to the project's repository (if available)
-    
-    # Automatically find all packages (folders with __init__.py) in your project
-    packages=find_packages(),  
-    
+    insitution="University of Oxford",
+    url="https://github.com/Jasplet/nymar-data-pipeline",
+    # URL to the project's repository (if available)
+
+    # Automatically find all packages (folders with __init__.py)
+    # in your project
+    packages=find_packages(),
+
     # Include additional files listed in MANIFEST.in
-    include_package_data=True,  
-    
+    include_package_data=True,
+
     # Project dependencies (install these when the package is installed)
     install_requires=[
         "numpy>=1.26.4",          # Example of a required package
