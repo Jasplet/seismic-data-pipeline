@@ -1,5 +1,6 @@
-# nymar-data-pipeline
-Code to run on digital ocean droplet to stage nymar data
+# seismic-data-pipeline
+Code to download miniseed data from Certimus/Minimus type seismometers. 
+Initially developed for a project in Oxford, but has now hopefully been generalised for wider use. 
 
 To install code currently you need to use `pip -e install seismic-data-pipeline` after cloning
 
