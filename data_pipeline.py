@@ -127,8 +127,10 @@ def chunked_data_query(sensor_ip,
                 make_request(request_url, outfile)
             except requests.exceptions.RequestException as e:
                 log.error(f'GET request failed with error {e}')
+                continue
             except requests.exceptions.HTTPError as e:
                 log.error(f'GET request failed with HTTPError {e}')
+                continue
 
     return
 
