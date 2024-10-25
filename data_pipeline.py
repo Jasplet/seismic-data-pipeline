@@ -123,7 +123,12 @@ def chunked_data_query(sensor_ip,
         else:
             request_url = form_request(sensor_ip, network, station, location,
                                        channel, query_start, query_end)
-            make_request(request_url, outfile)
+            try:
+                make_request(request_url, outfile)
+            except requests.exceptions.RequestException as e:
+                log.error(f'GET request failed with error {e}')
+            except requests.exceptions.HTTPError as e:
+                log.error(f'GET request failed with HTTPError {e}')
 
     return
 
@@ -144,25 +149,20 @@ def make_request(request_url, outfile):
     outfile : str
         Filename (including full path) to write out to
     '''
-    try:
-        log.info(f'Request: {request_url}')
-        r = requests.get(request_url, stream=True)
+    log.info(f'Request: {request_url}')
+    r = requests.get(request_url, stream=True)
 
-        log.info(f'Request elapsed time {r.elapsed}')
-        # Raise HTTP error for 4xx/5xx errors
-        if r.status_code != 200:
-            raise requests.exceptions.HTTPError
-        # Check if we get data
-        if len(r.content) == 0:
-            log.error('Request is empty! Won’t write a zero byte file.')
-            return
-        # Now write data
-        with open(outfile, "wb") as f:
-            f.write(r.content)
-    except requests.exceptions.RequestException as e:
-        log.error(f'GET request failed with error {e}')
-    except requests.exceptions.HTTPError as e:
-        log.error(f'GET request failed with HTTPError {e}')
+    log.info(f'Request elapsed time {r.elapsed}')
+    # Raise HTTP error for 4xx/5xx errors
+    if r.status_code != 200:
+        raise requests.exceptions.HTTPError
+    # Check if we get data
+    if len(r.content) == 0:
+        log.error('Request is empty! Won’t write a zero byte file.')
+        return
+    # Now write data
+    with open(outfile, "wb") as f:
+        f.write(r.content)
 
     return
 
@@ -231,6 +231,7 @@ def gather_chunks(network,
                 for gap in gaps:
                     line = ','.join([str(g) for g in gap])
                     w.writelines(f'{line}/n')
+    
         gathered_st.merge(method=0)
 
         log.info(f'Merged files: {gather_start}, gather size {gather_size}')
