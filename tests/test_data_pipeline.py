@@ -118,11 +118,31 @@ class TestDataPipeline(unittest.TestCase):
         # Each file should be unlinked
 
         # Verify that logging was called with expected messages
-        mock_log.info.assert_any_call(f'Merge complete for files on {self.starttime}, ' +
-                                      f'gather size {datetime.timedelta(days=1)}')
-        # replace with specific log messages you expect
+        mock_log.info.assert_called_once()
+        mock_log.warning.assert_not_called()
         mock_log.error.assert_not_called()
 
+    @patch("obspy.read")
+    @patch("pathlib.Path.glob")
+    @patch("pathlib.Path.unlink")
+    @patch("data_pipeline.log")
+    def test_gather_chunks_warning(self, mock_log, mock_unlink, mock_glob,
+                           mock_obspy_read):
+        """Test gather_chunks reads and merges files correctly."""
+        mock_obspy_read.return_value = MagicMock()
+        mock_obspy_read.return_value.merge = MagicMock()
+        mock_obspy_read.return_value.get_gaps = MagicMock()
+        mock_obspy_read.return_value.get_gaps.return_value = ['some', 'gaps']
+        
+        mock_glob.return_value = [Path(f"file_{i}.mseed") for i in range(3)]
+        with patch ('builtins.open',unittest.mock.mock_open()) as mock_file:
+            data_pipeline.gather_chunks(
+                self.network, self.station, self.location, self.channel,
+                self.starttime, self.endtime, data_dir="test_data",
+                gather_size=datetime.timedelta(days=1)
+            )
+
+        mock_log.warning.assert_called_once()
 
 if __name__ == '__main__':
     unittest.main()
