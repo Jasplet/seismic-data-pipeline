@@ -232,6 +232,7 @@ def gather_chunks(network,
                     line = ','.join([str(g) for g in gap])
                     w.writelines(f'{line}/n')
         gathered_st.merge(method=0)
+
         log.info(f'Merged files: {gather_start}, gather size {gather_size}')
         # Now clean up the chunked_files and write out our shiny new one!
         for f in ddir.glob(filestem):

@@ -83,8 +83,8 @@ class TestDataPipeline(unittest.TestCase):
         with patch("builtins.open", unittest.mock.mock_open()) as mock_file:
             data_pipeline.make_request("mock_url", "mock_outfile.mseed")
         mock_log.error.assert_called_once()
-        # change status code back to 200 and test that an empty file is logged and that
-        # make_request continues instead
+        # change status code back to 200 and test that an empty file is logged
+        # and that make_request continues instead
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.content = b''
@@ -93,17 +93,18 @@ class TestDataPipeline(unittest.TestCase):
             data_pipeline.make_request("mock_url", "mock_outfile.mseed")
             mock_log.error.assert_any_call("Request is empty! Won’t write a zero byte file.")
 
-
     @patch("obspy.read")
     @patch("pathlib.Path.glob")
     @patch("pathlib.Path.unlink")
     @patch("data_pipeline.log")
-    def test_gather_chunks(self, mock_log, mock_unlink, mock_glob, mock_obspy_read):
+    def test_gather_chunks(self, mock_log, mock_unlink, mock_glob,
+                           mock_obspy_read):
         """Test gather_chunks reads and merges files correctly."""
         mock_obspy_read.return_value = MagicMock()
         mock_obspy_read.return_value.merge = MagicMock()
+        mock_obspy_read.return_value.get_gaps = MagicMock()
         mock_glob.return_value = [Path(f"file_{i}.mseed") for i in range(3)]
-        
+
         data_pipeline.gather_chunks(
             self.network, self.station, self.location, self.channel,
             self.starttime, self.endtime, data_dir="test_data", gather_size=datetime.timedelta(days=1)
@@ -113,11 +114,15 @@ class TestDataPipeline(unittest.TestCase):
         mock_obspy_read.assert_called_once()
         # Check that merge and cleanup were called
         mock_obspy_read.return_value.merge.assert_called_once()
-        self.assertEqual(mock_unlink.call_count, 3)  # Each file should be unlinked
+        self.assertEqual(mock_unlink.call_count, 3)
+        # Each file should be unlinked
 
         # Verify that logging was called with expected messages
-        mock_log.info.assert_any_call(f'Merge complete for files on {self.starttime}, gather size {datetime.timedelta(days=1)}')  # replace with specific log messages you expect
-        mock_log.error.assert_not_called()  # Or assert specific errors if expected
+        mock_log.info.assert_any_call(f'Merge complete for files on {self.starttime}, ' +
+                                      f'gather size {datetime.timedelta(days=1)}')
+        # replace with specific log messages you expect
+        mock_log.error.assert_not_called()
+
 
 if __name__ == '__main__':
     unittest.main()
