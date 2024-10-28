@@ -59,8 +59,8 @@ if __name__ == '__main__':
 
     # Time span to get data for. Edit these start/end objects
     # to customise the timespan to get data for.
-    start = UTCDateTime(2024, 10, 1, 0, 0, 0)
-    end = UTCDateTime(2024, 11, 1, 0, 0, 0)
+    start = UTCDateTime(2024, 10, 25, 0, 0, 0)
+    end = UTCDateTime(2024, 10, 27, 0, 0, 0)
 
     # SET TO CORRECT CODE. should be '00' for veloctity data
     # will be somehing different for voltage,
