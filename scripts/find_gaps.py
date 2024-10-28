@@ -53,4 +53,4 @@ for h in iterate_chunks(start, end, timedelta(hours=1)):
             data_gaps.append(gap_params)
 
 with open(f'{dpath}/{outfile}', 'wb') as f:
-    pickle.dump(data_gaps, f, indent=2)
+    pickle.dump(data_gaps, f)
