@@ -41,7 +41,7 @@ for h in iterate_chunks(start, end, timedelta(hours=1)):
 
     for params in expected_file_params:
         timestamp = f'{year}{month:02d}{day:02d}T{hour:02d}*'
-        seedparams = f'{params[0].params[1].params[2].params[3]}'
+        seedparams = f'{params[0]}.{params[1]}.{params[2]}.{params[3]}'
         fname = f'{seedparams}.{timestamp}.mseed'
         f = ddir / fname
         if f.is_file():
