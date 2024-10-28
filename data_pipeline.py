@@ -9,6 +9,7 @@ from pathlib import Path
 import obspy
 import datetime
 import requests
+import glob
 import logging
 log = logging.getLogger(__name__)
 
@@ -238,7 +239,7 @@ def gather_chunks(network,
 
         log.info(f'Merged files: {gather_start}, gather size {gather_size}')
         # Now clean up the chunked_files and write out our shiny new one!
-        for f in ddir.glob(filestem):
+        for f in glob.glob(f'{ddir}/filestem'):
             path_f = Path(f)
             path_f.unlink(missing_ok=True)
         # Write out. Convention here is that file names describe seed codes
