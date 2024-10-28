@@ -57,7 +57,6 @@ if __name__ == '__main__':
     location = ["00"]
     # set start / end date. 
     request_params = itertools.product(network, station_list, location, channels)
-    
     # try to get previous 2 days of data (current day will not be available)
     # Here we want to iterate over the preding days, so truncate the today datetime object
     start = UTCDateTime(today.year, today.month, today.day) - backfill_span
