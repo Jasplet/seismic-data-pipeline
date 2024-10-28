@@ -27,21 +27,22 @@ if logdir.exists():
     print(f'Logs written to {logdir}')
 else:
     logdir = Path.cwd()
-    print(f'Logs written to cwd')
+    print('Logs written to cwd')
 
 if __name__ == '__main__':
     today = datetime.datetime.today()
     script_start = timeit.default_timer()
-    logging.basicConfig(filename=f'{logdir}/nymar_remote_download_{today.year}_{today.month:02d}_{today.day:02d}.log',
+    logging.basicConfig(filename=f'{logdir}/nymar_remote_download_' +
+                        f'{today.year}_{today.month:02d}_{today.day:02d}.log',
                         level=logging.INFO)
     log.info(f'Starting download. Time is {datetime.datetime.now()}')
 
-    ######### Start of variable to set #############
+    # ----------- Start of variable to set ----------
     # directory to write data to
-    data_dir = Path('/home/joseph/data') # change to /your/path/here
+    data_dir = Path('/home/joseph/data')  # change to /your/path/here
     # Provide IP addresses. Here I have stored them in a JSON file to keep
     # them off GitHub.
-    with open('/home/joseph/nymar_zerotier_ips.json','r') as w:
+    with open('/home/joseph/nymar_zerotier_ips.json', 'r') as w:
         ips_dict = json.load(w)
 
     # Seedlink Parameters
@@ -91,4 +92,5 @@ if __name__ == '__main__':
     script_end = timeit.default_timer()
     runtime = script_end - script_start
 
-    log.info(f'Runtime is {runtime:4.2f} seconds, or {runtime/60:4.2f} minutes, or {runtime/3600:4.2f} hours')
+    log.info(f'Runtime is {runtime:4.2f} seconds,' +
+             f' or {runtime/60:4.2f} minutes, or {runtime/3600:4.2f} hours')
