@@ -6,7 +6,7 @@
 
 from obspy import UTCDateTime
 import itertools
-import json
+import pickle
 from pathlib import Path
 from datetime import timedelta
 from data_pipeline import iterate_chunks
@@ -52,5 +52,5 @@ for h in iterate_chunks(start, end, timedelta(hours=1)):
                           params[3], h, h + timedelta(hours=1))
             data_gaps.append(gap_params)
 
-with open(f'{dpath}/{outfile}', 'w') as f:
-    json.dump(data_gaps, f, indent=2)
+with open(f'{dpath}/{outfile}', 'wb') as f:
+    pickle.dump(data_gaps, f, indent=2)
