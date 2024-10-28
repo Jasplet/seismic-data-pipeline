@@ -217,7 +217,7 @@ def gather_chunks(network,
         filestem = f"{seed_params}.{timestamp}.mseed"
         try:
             gathered_st = obspy.read(f'{ddir}/{filestem}')
-        except FileNotFoundError:
+        except Exception:
             log.error(f'No files matching {filestem}')
             continue
         # Merge traces.

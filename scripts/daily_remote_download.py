@@ -1,13 +1,14 @@
 # Author: J Asplet, U of Oxford, 20/11/2023
 
-## Python script to remotely query data from NYMAR array stations
-## We are using Wget as implemented in the requests library
-## This script is designed to be run as a cron job to send daily requests to
-## remotely installed Certimus/Minimus to get data
-## Data is requested in hourly chunks and then recombined into a day length miniSEED file
-
-## Some editing of this script could make it request minute chunks (for a whole day) or
-## make hourly / minutely requests for data 
+# Python script to remotely query data from NYMAR array stations
+# We are using Wget as implemented in the requests library
+# This script is designed to be run as a cron job to send daily requests to
+# remotely installed Certimus/Minimus to get data
+# Data is requested in hourly chunks and then recombined into
+# a day length miniSEED file
+#
+# Some editing of this script could make it request minute chunks
+# (for a whole day) or make hourly / minutely requests for data
 
 from pathlib import Path
 from obspy import UTCDateTime
@@ -43,43 +44,49 @@ if __name__ == '__main__':
     with open('/home/joseph/nymar_zerotier_ips.json','r') as w:
         ips_dict = json.load(w)
 
-    # Seedlink Parameters 
+    # Seedlink Parameters
     network = ["OX"]
-    station_list = ['NYM1','NYM2','NYM3','NYM4','NYM5','NYM6','NYM7','NYM8']
-    channels = ["HHZ",  "HHN", "HHE"] 
+    station_list = ['NYM1', 'NYM2', 'NYM3', 'NYM4',
+                    'NYM5', 'NYM6', 'NYM7', 'NYM8']
+    channels = ["HHZ",  "HHN", "HHE"]
 
     # Set number of days to downlaod (for preliminary gapfilling)
     backfill_span = datetime.timedelta(days=2)
     #  backfill_span = datetime.timedelta(hours=2)
 
-    #SET TO CORRECT CODE. should be '00' for veloctity data
-    # will be somehing different for voltage, check status page (https://{your-ip-here})
+    # SET TO CORRECT CODE. should be '00' for veloctity data
+    # will be somehing different for voltage
+    # check status page (https://{your-ip-here})
     location = ["00"]
-    # set start / end date. 
-    request_params = itertools.product(network, station_list, location, channels)
-    
+    # set start / end date.
+    request_params = itertools.product(network, station_list,
+                                       location, channels)
+
     # try to get previous 2 days of data (current day will not be available)
-    # Here we want to iterate over the preding days, so truncate the today datetime object
+    # Here we want to iterate over the preding days
+    # so truncate the today datetime object
     start = UTCDateTime(today.year, today.month, today.day) - backfill_span
     end = UTCDateTime(today.year, today.month, today.day)
     log.info(f'Query start time: {start}')
     log.info(f'Query end time: {end}')
-    ########### End of variables to set ###########
+    # ---------- End of variables to set ----------
 
     for params in request_params:
         # params should be form (net, stat, loc, channel)
         log.info(f'Request data for {params}')
         station_ip = ips_dict[params[1]]
-    
+
         chunked_data_query(station_ip, network=params[0], station=params[1],
                            location=params[2], channel=params[3],
                            starttime=start, endtime=end,
-                           data_dir=data_dir, chunksize=datetime.timedelta(hours=1),
+                           data_dir=data_dir,
+                           chunksize=datetime.timedelta(hours=1),
                            buffer=datetime.timedelta(seconds=150))
         gather_chunks(network=params[0], station=params[1],
-                           location=params[2], channel=params[3],
-                           starttime=start, endtime=end,
-                           data_dir=data_dir, gather_size=datetime.timedelta(days=1))
+                      location=params[2], channel=params[3],
+                      starttime=start, endtime=end,
+                      data_dir=data_dir,
+                      gather_size=datetime.timedelta(days=1))
 
     script_end = timeit.default_timer()
     runtime = script_end - script_start
