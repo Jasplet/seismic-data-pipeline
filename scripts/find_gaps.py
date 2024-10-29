@@ -53,7 +53,7 @@ for h in iterate_chunks(start, end, chunksize):
             continue
         else:
             gap_params = (params[0], params[1], params[2],
-                          params[3], h, h + timedelta(chunksize))
+                          params[3], h, h + chunksize)
             data_gaps.append(gap_params)
     print(h)
 
