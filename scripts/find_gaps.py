@@ -31,8 +31,10 @@ outfile = 'July_Oct_missing_files.json'
 
 data_gaps = []
 
+chunksize = timedelta(days=1)
+
 # Iterate over days
-for h in iterate_chunks(start, end, timedelta(hours=1)):
+for h in iterate_chunks(start, end, chunksize):
     year = h.year
     month = h.month
     day = h.day
@@ -49,7 +51,7 @@ for h in iterate_chunks(start, end, timedelta(hours=1)):
             continue
         else:
             gap_params = (params[0], params[1], params[2],
-                          params[3], h, h + timedelta(hours=1))
+                          params[3], h, h + timedelta(chunksize))
             data_gaps.append(gap_params)
 
 with open(f'{dpath}/{outfile}', 'wb') as f:

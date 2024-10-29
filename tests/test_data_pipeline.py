@@ -1,7 +1,9 @@
 import unittest
 from unittest.mock import patch, MagicMock
 from pathlib import Path
+import requests
 import datetime
+import glob
 from obspy import UTCDateTime
 import data_pipeline  # Assuming this is saved as data_pipeline.py
 
@@ -102,9 +104,8 @@ class TestDataPipeline(unittest.TestCase):
         mock_get.return_value = mock_response
 
         # Test that an HTTPError is raised as logged
-        with patch("builtins.open", unittest.mock.mock_open()):
+        with self.assertRaises(requests.exceptions.HTTPError):
             data_pipeline.make_request("mock_url", "mock_outfile.mseed")
-        mock_log.error.assert_called_once()
         # change status code back to 200 and test that an empty file is logged
         # and that make_request continues instead
         mock_response = MagicMock()
@@ -116,17 +117,19 @@ class TestDataPipeline(unittest.TestCase):
             expected_call = "Request is empty! Won’t write a zero byte file."
             mock_log.error.assert_any_call(expected_call)
 
+    @patch("obspy.Stream.get_gaps")
     @patch("obspy.read")
-    @patch("pathlib.Path.glob")
+    @patch("glob.glob")
     @patch("pathlib.Path.unlink")
     @patch("data_pipeline.log")
     def test_gather_chunks(self, mock_log, mock_unlink, mock_glob,
-                           mock_obspy_read):
+                           mock_obspy_read, mock_get_gaps):
         """Test gather_chunks reads and merges files correctly."""
         mock_obspy_read.return_value = MagicMock()
         mock_obspy_read.return_value.merge = MagicMock()
         mock_obspy_read.return_value.get_gaps = MagicMock()
         mock_glob.return_value = [Path(f"file_{i}.mseed") for i in range(3)]
+        mock_get_gaps.return_value = []
 
         data_pipeline.gather_chunks(self.network,
                                     self.station,
