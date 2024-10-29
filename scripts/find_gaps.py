@@ -19,7 +19,7 @@ channels = ["HHZ",  "HHN", "HHE"]
 location = ["00"]
 
 expected_file_params = [p for p in itertools.product(network, station_list,
-                                         location, channels)]
+                        location, channels)]
 
 
 start = UTCDateTime(2024, 7, 1)
@@ -51,10 +51,10 @@ for h in iterate_chunks(start, end, chunksize):
             # could add check that miniseed file is as we expect
             continue
         else:
+            print(f'{f} is missing')
             gap_params = (params[0], params[1], params[2],
                           params[3], h, h + chunksize)
             data_gaps.append(gap_params)
-    print(h)
 
 with open(f'{dpath}/{outfile}', 'wb') as f:
     pickle.dump(data_gaps, f)
