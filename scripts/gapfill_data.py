@@ -76,7 +76,7 @@ if __name__ == '__main__':
     # ----------- End of variables to set ----------
 
     for params in request_params:
-        # params should be form (net, stat, loc, channel)
+        # params should be form (net, stat, loc, channel, start, end)
         log.info(f'Request data for {params}')
         station_ip = ips_dict[params[1]]
 
