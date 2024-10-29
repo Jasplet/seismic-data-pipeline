@@ -41,7 +41,7 @@ for h in iterate_chunks(start, end, chunksize):
     day = h.day
     hour = h.hour
     ddir = Path(f'{dpath}/{year}/{month:02d}/{day:02d}')
-    timestamp = f'{year}{month:02d}{day:02d}T*'
+    timestamp = f'{year}{month:02d}{day:02d}T{hour:02d}0000'
 
     for params in expected_file_params:
         seedparams = f'{params[0]}.{params[1]}.{params[2]}.{params[3]}'
