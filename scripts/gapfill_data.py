@@ -58,7 +58,7 @@ if __name__ == '__main__':
     # To use this script as an exmample to build your own code which finds
     # gaps that need filling and then sends the requests.
 
-    request_params = [('OX','NYM2','00','HHN', UTCDateTime(2024, 10, 1, 0, 0, 0),UTCDateTime(2024,10,2, 0, 0, 0)),
+    request_params = [('OX','NYM','00','HHN', UTCDateTime(2024, 10, 1, 0, 0, 0),UTCDateTime(2024,10,2, 0, 0, 0)),
                       ('OX','NYM2','00','HHE', UTCDateTime(2024, 4, 28, 0, 0, 0),UTCDateTime(2024,4, 28, 0, 0, 0)),
                       ('OX','NYM3','00','HHN', UTCDateTime(2023, 12, 1, 0, 0, 0),UTCDateTime(2023,12,2, 0, 0, 0)),
                       ('OX','NYM4','00','HHZ', UTCDateTime(2024, 10, 1, 0, 0, 0),UTCDateTime(2024,10,2, 0, 0, 0))]
