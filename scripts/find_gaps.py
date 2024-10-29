@@ -44,7 +44,6 @@ for h in iterate_chunks(start, end, chunksize):
     timestamp = f'{year}{month:02d}{day:02d}T*'
 
     for params in expected_file_params:
-        print(h)
         seedparams = f'{params[0]}.{params[1]}.{params[2]}.{params[3]}'
         fname = f'{seedparams}.{timestamp}.mseed'
         f = ddir / fname
