@@ -47,17 +47,17 @@ if __name__ == '__main__':
 
     # ---------- Start of variable to set ----------
     # directory to write data to
-    # data_dir = Path('/home/joseph/data') # change to /your/path/to/datadir
-    data_dir = Path.cwd()
+    data_dir = Path('/Volumes/NYMAR_DATA/NYMAR/data_dump/gap_filling') # change to /your/path/to/datadir
+    # data_dir = Path.cwd()
     # Provide IP addresses. Here I have stored them in a JSON file to keep
     # them off GitHub.
-    with open('/home/joseph/nymar_zerotier_ips.json','r') as w:
+    with open('/Users/eart0593/Projects/Agile/NYMAR/nymar_zerotier_ips.json','r') as w:
         ips_dict = json.load(w)
 
     # Set up request parameters here. This is an example only. You may want
     # To use this script as an exmample to build your own code which finds
     # gaps that need filling and then sends the requests.
-    gapfile = '/home/eart0593/NYMAR/raw_data/July_Oct_missing_files.pkl'
+    gapfile = '/Users/eart0593/Projects/Agile/NYMAR/July_Oct_missing_files.pkl'
     with open(gapfile, 'rb') as f:
         request_params = pickle.load(f)
 
