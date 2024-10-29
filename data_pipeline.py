@@ -105,7 +105,7 @@ def chunked_data_query(sensor_ip,
     for chunk_start in iterate_chunks(starttime, endtime, chunksize):
         # Add 150 seconds buffer on either side
         query_start = chunk_start - buffer
-        query_end = chunk_start + buffer
+        query_end = chunk_start + chunksize + buffer
         year = chunk_start.year
         month = chunk_start.month
         day = chunk_start.day
