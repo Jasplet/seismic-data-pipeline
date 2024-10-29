@@ -18,8 +18,8 @@ station_list = ['NYM1', 'NYM2', 'NYM3', 'NYM4',
 channels = ["HHZ",  "HHN", "HHE"]
 location = ["00"]
 
-expected_file_params = itertools.product(network, station_list,
-                                         location, channels)
+expected_file_params = [p for p in itertools.product(network, station_list,
+                                         location, channels)]
 
 
 start = UTCDateTime(2024, 7, 1)
