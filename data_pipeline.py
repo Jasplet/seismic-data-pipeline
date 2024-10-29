@@ -105,7 +105,7 @@ def chunked_data_query(sensor_ip,
     for chunk_start in iterate_chunks(starttime, endtime, chunksize):
         # Add 150 seconds buffer on either side
         query_start = chunk_start - buffer
-        query_end = chunk_start + buffer
+        query_end = chunk_start + chunksize + buffer
         year = chunk_start.year
         month = chunk_start.month
         day = chunk_start.day
@@ -229,11 +229,11 @@ def gather_chunks(network,
         gaps = gathered_st.get_gaps()
         if len(gaps) > 0:
             log.warning('Gaps found - write out')
-            gaplog = f'gaps_in_{timestamp}_data.log'
+            gaplog = f'gaps_in_{timestamp.strip("*")}_data.log'
             with open(f'{data_dir}/{gaplog}', 'w') as w:
                 for gap in gaps:
                     line = ','.join([str(g) for g in gap])
-                    w.writelines(f'{line}/n')
+                    w.writelines(f'{line}\n')
 
         gathered_st.merge(method=0, fill_value=0)
 

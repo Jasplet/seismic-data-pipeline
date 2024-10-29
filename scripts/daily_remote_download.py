@@ -82,12 +82,12 @@ if __name__ == '__main__':
                            starttime=start, endtime=end,
                            data_dir=data_dir,
                            chunksize=datetime.timedelta(hours=1),
-                           buffer=datetime.timedelta(seconds=150))
-        gather_chunks(network=params[0], station=params[1],
-                      location=params[2], channel=params[3],
-                      starttime=start, endtime=end,
-                      data_dir=data_dir,
-                      gather_size=datetime.timedelta(days=1))
+                           buffer=datetime.timedelta(seconds=120))
+        # gather_chunks(network=params[0], station=params[1],
+        #               location=params[2], channel=params[3],
+        #               starttime=start, endtime=end,
+        #               data_dir=data_dir,
+        #               gather_size=datetime.timedelta(days=1))
 
     script_end = timeit.default_timer()
     runtime = script_end - script_start
