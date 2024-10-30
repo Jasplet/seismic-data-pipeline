@@ -11,6 +11,7 @@ import datetime
 import requests
 import glob
 import logging
+import aiohttp
 log = logging.getLogger(__name__)
 
 # functions
@@ -135,7 +136,6 @@ def chunked_data_query(sensor_ip,
 
     return
 
-
 def make_request(request_url, outfile):
     '''
     Function to actually make the HTTP GET request from the Certimus
@@ -153,6 +153,7 @@ def make_request(request_url, outfile):
         Filename (including full path) to write out to
     '''
     log.info(f'Request: {request_url}')
+    print(request_url)
     r = requests.get(request_url, stream=True)
 
     log.info(f'Request elapsed time {r.elapsed}')
@@ -168,6 +169,107 @@ def make_request(request_url, outfile):
         f.write(r.content)
 
     return
+
+
+def make_asnyc_urls(ip_dict,
+                    request_params,
+                    data_dir='',
+                    chunksize=datetime.timedelta(hours=1),
+                    buffer=datetime.timedelta(seconds=150)):
+    '''
+    Makes urls for chunked requests. Suitable for larger (or regular) data downloads
+
+    Default chunk size is 1 hour
+
+    Parameters:
+    ----------
+    ip_dict : dict
+        Dictionary of IP addresses of sensors. Includes port no if any port forwarding needed
+    request_params : list
+        List of tuples (net, stat, loc, channel, start, end)
+    data_dir : str,
+        Directory to write data to
+    chunksize : datetime.timedelta
+        Size of chunked request
+    '''
+#   If data dir is empty then use current directory
+    if data_dir == '':
+        data_dir = Path.cwd()
+    urls = []
+    outfiles = []
+    for params in request_params:
+        network = params[0]
+        station = params[1]
+        location = params[2]
+        channel = params[3]
+        sensor_ip = ip_dict[station]
+        for chunk_start in iterate_chunks(params[4], params[5], chunksize):
+            # Add 150 seconds buffer on either side
+            query_start = chunk_start - buffer
+            query_end = chunk_start + chunksize + buffer
+            year = chunk_start.year
+            month = chunk_start.month
+            day = chunk_start.day
+            hour = chunk_start.hour
+            mins = chunk_start.minute
+            sec = chunk_start.second
+
+            ddir = Path(f'{data_dir}/{year}/{month:02d}/{day:02d}')
+            ddir.mkdir(exist_ok=True, parents=True)
+            seed_params = f'{network}.{station}.{location}.{channel}'
+            timestamp = f'{year}{month:02d}{day:02d}T{hour:02d}{mins:02d}{sec:02d}'
+            outfile = ddir / f"{seed_params}.{timestamp}.mseed"
+            if outfile.is_file():
+                log.info(f'Data chunk {outfile} exists')
+                continue
+            else:
+                request_url = form_request(sensor_ip, network, station, location,
+                                           channel, query_start, query_end)
+                urls.append(request_url)
+                outfiles.append(outfile)
+
+    return urls, outfiles
+
+
+
+async def make_async_request(session, semaphore, request_url, outfile):
+    '''
+    Function to actually make the HTTP GET request from the Certimus
+
+    Gets one file, which corresponds to the request_url and writes
+    it out as miniSEED
+    to the specified outfile
+
+    Parameters:
+    ----------
+    request_url : str
+        The formed request url in the form:
+        http://{sensor_ip}/data?channel={net_code}.{stat_code}.{loc_code}.{channel}&from={startUNIX}&to={endUNIX}
+    '''
+    async with semaphore:
+        try:
+            async with session.get(request_url) as resp:
+                print(f'Request at {datetime.datetime.now()}')
+                print(request_url)
+                # Raise HTTP error for 4xx/5xx errors
+                resp.raise_for_status()
+
+                # Read binary data from the response
+                data = await resp.read()
+                if len(data) == 0:
+                    log.error('Request is empty! Won’t write a zero byte file.')
+                    return
+                # Now write data
+                with open(outfile, "wb") as f:
+                    f.write(data)
+                log.info(f'Successfully wrote data to {outfile}')
+        
+        except aiohttp.ClientResponseError as e:
+            log.error(f'Client error for {request_url}: {e}')
+            # Additional handling could go here, like retry logic
+        except Exception as e:
+            log.error(f'Unexpected error for {request_url}: {e}')
+        return
 
 
 def gather_chunks(network,

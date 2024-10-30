@@ -47,7 +47,7 @@ if __name__ == '__main__':
 
     # ---------- Start of variable to set ----------
     # directory to write data to
-    data_dir = Path('/Volumes/NYMAR_DATA/NYMAR/data_dump/gap_filling') # change to /your/path/to/datadir
+    data_dir = Path('/Users/eart0593/Projects/Agile/NYMAR/data_dump/gap_filling') # change to /your/path/to/datadir
     # data_dir = Path.cwd()
     # Provide IP addresses. Here I have stored them in a JSON file to keep
     # them off GitHub.
@@ -77,6 +77,9 @@ if __name__ == '__main__':
 
     for params in request_params:
         # params should be form (net, stat, loc, channel, start, end)
+        if params[1] in ['NYM1','NYM4']:
+            continue
+
         log.info(f'Request data for {params}')
         station_ip = ips_dict[params[1]]
 
@@ -85,12 +88,12 @@ if __name__ == '__main__':
                            starttime=params[4], endtime=params[5],
                            data_dir=data_dir,
                            chunksize=datetime.timedelta(hours=1),
-                           buffer=datetime.timedelta(seconds=150))
-        gather_chunks(network=params[0], station=params[1],
-                      location=params[2], channel=params[3],
-                      starttime=params[4], endtime=params[5],
-                      data_dir=data_dir, gather_size=datetime.timedelta(days=1)
-                      )
+                           buffer=datetime.timedelta(seconds=120))
+        # gather_chunks(network=params[0], station=params[1],
+        #               location=params[2], channel=params[3],
+        #               starttime=params[4], endtime=params[5],
+        #               data_dir=data_dir, gather_size=datetime.timedelta(days=1)
+        #               )
 
     script_end = timeit.default_timer()
     runtime = script_end - script_start
