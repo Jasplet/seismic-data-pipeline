@@ -209,6 +209,9 @@ async def make_async_request(session, semaphore, request_url, outfile):
 
 
 # core synchronous functions
+# These functions are deprecated but i will
+# leave them here for users that may want to use them
+# these functions are still tested
 
 
 def form_request(sensor_ip,
