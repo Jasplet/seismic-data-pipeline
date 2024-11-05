@@ -24,7 +24,8 @@ import json
 import logging
 import itertools
 
-from data_pipeline import chunked_data_query, gather_chunks
+from data_pipeline import chunked_data_query, make_asnyc_urls
+from data_pipeline import make_async_request
 
 log = logging.getLogger(__name__)
 logdir = Path('/home/joseph/logs')
@@ -35,6 +36,54 @@ else:
     logdir = Path.cwd()
     print(f'Logs written to cwd - {logdir}')
 
+async def main(networks,
+               stations,
+               locations,
+               channels,
+               start,
+               end,
+               data_dir=Path.cwd(),
+         chunksize=datetime.timedelta(hours=1),
+         buffer=datetime.timedelta(seconds=120),
+         n_async_requests=3):
+
+    # Make all urls to query.
+    request_params = itertools.product(networks,
+                                       stations,
+                                       locations,
+                                       channels,
+                                       start,
+                                       end)
+    
+    urls, outfiles = make_asnyc_urls(ips_dict, request_params,
+                                     data_dir,
+                                     chunksize,
+                                     buffer)
+    log.info(f'There are {len(urls)} requests to make')
+      
+    requests_by_ip = {}
+    for url, outfile in zip(urls, outfiles):
+        sensor_ip = url.split("/")[2]
+        if sensor_ip not in requests_by_ip:
+            requests_by_ip[sensor_ip] = []
+        requests_by_ip[sensor_ip].append((url, outfile))
+    # Set up asyncio's HTTP client session
+    semaphores = {sensor_ip: asyncio.Semaphore(n_async_requests)
+                  for sensor_ip in requests_by_ip}  # Adjust as needed
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        # Limit the number of simultaneous requests
+        # Adjust based on seismometer capacity
+        for sensor_ip, requests in requests_by_ip.items():
+            semaphore = semaphores[sensor_ip]
+            for request_url, outfile in requests:
+                task = asyncio.create_task(make_async_request(session,
+                                           semaphore,
+                                           request_url,
+                                           outfile)
+                                           )
+                tasks.append(task)
+        await asyncio.gather(*tasks)
 
 if __name__ == '__main__':
     script_start = timeit.default_timer()
@@ -61,37 +110,21 @@ if __name__ == '__main__':
     # to customise the timespan to get data for.
     start = UTCDateTime(2024, 10, 25, 0, 0, 0)
     end = UTCDateTime(2024, 10, 27, 0, 0, 0)
-
+    log.info(f'Query start time: {start}')
+    log.info(f'Query end time: {end}')
     # SET TO CORRECT CODE. should be '00' for veloctity data
     # will be somehing different for voltage,
     # check Certimus/Minimus status page (https://{your-ip-here})
     location = ["00"]
     # flatten seedlink parameters into an iterator of
     # tuples of all possible combinations.
-    request_params = itertools.product(network, station_list,
-                                       location, channels)
-
-    log.info(f'Query start time: {start}')
-    log.info(f'Query end time: {end}')
+    
+    # params should be form (net, stat, loc, channel, start, end)
+    # here start/end are the start and end time of all data to request
     # ========== End of variables to set ==========
-
-    for params in request_params:
-        # params should be form (net, stat, loc, channel)
-        log.info(f'Request data for {params}')
-        station_ip = ips_dict[params[1]]
-
-        chunked_data_query(station_ip, network=params[0], station=params[1],
-                           location=params[2], channel=params[3],
-                           starttime=start, endtime=end,
-                           data_dir=data_dir,
-                           chunksize=datetime.timedelta(hours=1),
-                           buffer=datetime.timedelta(seconds=150))
-        gather_chunks(network=params[0], station=params[1],
-                      location=params[2], channel=params[3],
-                      starttime=start, endtime=end,
-                      data_dir=data_dir,
-                      gather_size=datetime.timedelta(days=1))
-
+    main(network, station_list, location, channels,
+         start, end, data_dir=data_dir)
+    
     script_end = timeit.default_timer()
     runtime = script_end - script_start
 
