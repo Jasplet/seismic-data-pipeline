@@ -22,10 +22,8 @@ import timeit
 import datetime
 import json
 import logging
-import itertools
 
-from data_pipeline import chunked_data_query, make_asnyc_urls
-from data_pipeline import make_async_request
+from data_pipeline import get_data
 
 log = logging.getLogger(__name__)
 logdir = Path('/home/joseph/logs')
@@ -69,13 +67,13 @@ if __name__ == '__main__':
     location = ["00"]
     # flatten seedlink parameters into an iterator of
     # tuples of all possible combinations.
-    
+
     # params should be form (net, stat, loc, channel, start, end)
     # here start/end are the start and end time of all data to request
     # ========== End of variables to set ==========
-    main(network, station_list, location, channels,
-         start, end, data_dir=data_dir)
-    
+    get_data(network, station_list, location, channels,
+             start, end, data_dir=data_dir)
+
     script_end = timeit.default_timer()
     runtime = script_end - script_start
 
