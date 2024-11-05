@@ -120,9 +120,9 @@ async def main(networks,
                end,
                station_ips,
                data_dir=Path.cwd(),
-         chunksize=datetime.timedelta(hours=1),
-         buffer=datetime.timedelta(seconds=120),
-         n_async_requests=3):
+               chunksize=datetime.timedelta(hours=1),
+               buffer=datetime.timedelta(seconds=120),
+               n_async_requests=3):
 
     # Make all urls to query.
     request_params = itertools.product(networks,
@@ -131,15 +131,14 @@ async def main(networks,
                                        channels,
                                        start,
                                        end)
-    
+
     urls, outfiles = make_urls(station_ips,
                                request_params,
                                data_dir,
                                chunksize,
                                buffer)
-    
+
     log.info(f'There are {len(urls)} requests to make')
-      
     requests_by_ip = {}
     for url, outfile in zip(urls, outfiles):
         sensor_ip = url.split("/")[2]
