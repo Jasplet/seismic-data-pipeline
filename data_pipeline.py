@@ -56,7 +56,19 @@ def form_request(sensor_ip,
 
 
 def iterate_chunks(start, end, chunksize):
+    '''
+    Function that makes an interator between two dates (start, end) in 
+    intervals of <chunksize>.
 
+    Parameters:
+    ----------
+    start : UTCDateTime
+        start time
+    end : obspy.UTCDateTime
+        end time
+    chunksize : datetime.timedelta
+        timespan of chunks to split timespan into and iterate over
+    '''
     chunk_start = start
     while chunk_start < end:
         yield chunk_start
@@ -136,6 +148,7 @@ def chunked_data_query(sensor_ip,
 
     return
 
+
 def make_request(request_url, outfile):
     '''
     Function to actually make the HTTP GET request from the Certimus
@@ -170,7 +183,6 @@ def make_request(request_url, outfile):
 
     return
 
-
 def make_asnyc_urls(ip_dict,
                     request_params,
                     data_dir='',
@@ -184,7 +196,8 @@ def make_asnyc_urls(ip_dict,
     Parameters:
     ----------
     ip_dict : dict
-        Dictionary of IP addresses of sensors. Includes port no if any port forwarding needed
+        Dictionary of IP addresses of sensors.
+        Includes port number if any port forwarding needed
     request_params : list
         List of tuples (net, stat, loc, channel, start, end)
     data_dir : str,
@@ -223,13 +236,18 @@ def make_asnyc_urls(ip_dict,
                 log.info(f'Data chunk {outfile} exists')
                 continue
             else:
-                request_url = form_request(sensor_ip, network, station, location,
-                                           channel, query_start, query_end)
+                request_url = form_request(sensor_ip,
+                                           network,
+                                           station,
+                                           location,
+                                           channel,
+                                           query_start,
+                                           query_end
+                                           )
                 urls.append(request_url)
                 outfiles.append(outfile)
 
     return urls, outfiles
-
 
 
 async def make_async_request(session, semaphore, request_url, outfile):
@@ -263,7 +281,7 @@ async def make_async_request(session, semaphore, request_url, outfile):
                 with open(outfile, "wb") as f:
                     f.write(data)
                 log.info(f'Successfully wrote data to {outfile}')
-        
+
         except aiohttp.ClientResponseError as e:
             log.error(f'Client error for {request_url}: {e}')
             # Additional handling could go here, like retry logic
