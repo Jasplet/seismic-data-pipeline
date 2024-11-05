@@ -16,12 +16,14 @@
 # Some editing of this script could make it request minute chunks
 # (for a whole day) or make hourly / minutely requests for data
 
-from pathlib import Path
-from obspy import UTCDateTime
-import timeit
+import asyncio
 import datetime
 import json
 import logging
+from pathlib import Path
+import timeit
+
+from obspy import UTCDateTime
 
 from data_pipeline import get_data
 
@@ -71,8 +73,10 @@ if __name__ == '__main__':
     # params should be form (net, stat, loc, channel, start, end)
     # here start/end are the start and end time of all data to request
     # ========== End of variables to set ==========
-    get_data(network, station_list, location, channels,
-             start, end, data_dir=data_dir)
+
+    # call get_data
+    asyncio.run(get_data(network, station_list, location, channels,
+                start, end, data_dir=data_dir))
 
     script_end = timeit.default_timer()
     runtime = script_end - script_start
