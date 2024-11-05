@@ -53,14 +53,15 @@ if __name__ == '__main__':
 
     # Seedlink Parameters
     network = ["OX"]
-    station_list = ['NYM1', 'NYM2', 'NYM3', 'NYM4',
+    station_list = ['NYM2', 'NYM3',
                     'NYM5', 'NYM6', 'NYM7', 'NYM8']
+    station_liat = ['NYM7','NYM8']
     channels = ["HHZ",  "HHN", "HHE"]
 
     # Time span to get data for. Edit these start/end objects
     # to customise the timespan to get data for.
-    start = UTCDateTime(2024, 10, 25, 0, 0, 0)
-    end = UTCDateTime(2024, 10, 27, 0, 0, 0)
+    start = UTCDateTime(2024, 10, 24, 0, 0, 0)
+    end = UTCDateTime(2024, 10, 28, 0, 0, 0)
 
     # SET TO CORRECT CODE. should be '00' for veloctity data
     # will be somehing different for voltage,
