@@ -57,9 +57,8 @@ if __name__ == '__main__':
 
     # Seedlink Parameters
     network = ["OX"]
-    station_list = ['NYM2']
-    # station_list = ['NYM1', 'NYM2', 'NYM3', 'NYM4',
-    #                 'NYM5', 'NYM6', 'NYM7', 'NYM8']
+    station_list = ['NYM1', 'NYM2', 'NYM3', 'NYM4',
+                    'NYM5', 'NYM6', 'NYM7', 'NYM8']
     channels = ["HHZ",  "HHN", "HHE"]
 
     # Time span to get data for. Edit these start/end objects
