@@ -41,7 +41,7 @@ async def main():
     urls, outfiles = make_asnyc_urls(ips_dict, request_params,
                                      data_dir,
                                      chunksize=datetime.timedelta(hours=1),
-                                     buffer=datetime.timedelta(seconds=120))         
+                                     buffer=datetime.timedelta(seconds=120))
     requests_by_ip = {}
     for url, outfile in zip(urls, outfiles):
         sensor_ip = url.split("/")[2]
