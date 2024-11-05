@@ -68,12 +68,25 @@ def make_urls(ip_dict,
         data_dir = Path.cwd()
     urls = []
     outfiles = []
+
     for params in request_params:
+        if len(params) != 6:
+            log.error(f'Malformed params {params}')
+            raise ValueError('Too few parameters in params')
         network = params[0]
         station = params[1]
         location = params[2]
         channel = params[3]
+        start = params[4]
+        end = params[5]
         sensor_ip = ip_dict[station]
+        if start > end:
+            raise ValueError('Start after End!')
+        if not isinstance(start,
+                          obspy.UTCDateTime
+                          ) or not isinstance(end, obspy.UTCDateTime):
+            raise TypeError("Start and end times must be of type UTCDateTime.")
+
         for chunk_start in iterate_chunks(params[4], params[5], chunksize):
             # Add 150 seconds buffer on either side
             query_start = chunk_start - buffer
