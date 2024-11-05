@@ -25,7 +25,9 @@ async def main():
     log.info(f'Starting download. Time is {script_start}')
 
     # Set data directory and IP addresses
-    data_dir = Path('/Users/eart0593/Projects/Agile/NYMAR/data_dump/gap_filling') # change to /your/path/to/datadir
+    # change to /your/path/to/datadir
+    data_dir = Path('/Users/eart0593/Projects/Agile/NYMAR/' +
+                    'data_dump/gap_filling')
     with open('/Users/eart0593/Projects/Agile/NYMAR/nymar_zerotier_ips.json',
               'r') as w:
         ips_dict = json.load(w)
@@ -34,11 +36,12 @@ async def main():
     gapfile = '/Users/eart0593/Projects/Agile/NYMAR/July_Oct_missing_files.pkl'
     with open(gapfile, 'rb') as f:
         in_params = pickle.load(f)
-    request_params = [params for params in in_params if params[1] not in ['NYM1','NYM4']]
+    request_params = [params for params in in_params
+                      if params[1] not in ['NYM1', 'NYM4']]
     urls, outfiles = make_asnyc_urls(ips_dict, request_params,
                                      data_dir,
                                      chunksize=datetime.timedelta(hours=1),
-                                     buffer=datetime.timedelta(seconds=120))          
+                                     buffer=datetime.timedelta(seconds=120))         
     requests_by_ip = {}
     for url, outfile in zip(urls, outfiles):
         sensor_ip = url.split("/")[2]
@@ -66,7 +69,9 @@ async def main():
 
     script_end = datetime.datetime.now()
     runtime = (script_end - script_start).total_seconds()
-    log.info(f'Runtime is {runtime:.2f} seconds, or {runtime / 60:.2f} minutes, or {runtime / 3600:.2f} hours')
+    log.info(f'Runtime is {runtime:.2f} seconds,' +
+             ' or {runtime / 60:.2f} minutes,' +
+             ' or {runtime / 3600:.2f} hours.')
 
 
 if __name__ == '__main__':
