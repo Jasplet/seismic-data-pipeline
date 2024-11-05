@@ -36,55 +36,6 @@ else:
     logdir = Path.cwd()
     print(f'Logs written to cwd - {logdir}')
 
-async def main(networks,
-               stations,
-               locations,
-               channels,
-               start,
-               end,
-               data_dir=Path.cwd(),
-         chunksize=datetime.timedelta(hours=1),
-         buffer=datetime.timedelta(seconds=120),
-         n_async_requests=3):
-
-    # Make all urls to query.
-    request_params = itertools.product(networks,
-                                       stations,
-                                       locations,
-                                       channels,
-                                       start,
-                                       end)
-    
-    urls, outfiles = make_asnyc_urls(ips_dict, request_params,
-                                     data_dir,
-                                     chunksize,
-                                     buffer)
-    log.info(f'There are {len(urls)} requests to make')
-      
-    requests_by_ip = {}
-    for url, outfile in zip(urls, outfiles):
-        sensor_ip = url.split("/")[2]
-        if sensor_ip not in requests_by_ip:
-            requests_by_ip[sensor_ip] = []
-        requests_by_ip[sensor_ip].append((url, outfile))
-    # Set up asyncio's HTTP client session
-    semaphores = {sensor_ip: asyncio.Semaphore(n_async_requests)
-                  for sensor_ip in requests_by_ip}  # Adjust as needed
-    async with aiohttp.ClientSession() as session:
-        tasks = []
-        # Limit the number of simultaneous requests
-        # Adjust based on seismometer capacity
-        for sensor_ip, requests in requests_by_ip.items():
-            semaphore = semaphores[sensor_ip]
-            for request_url, outfile in requests:
-                task = asyncio.create_task(make_async_request(session,
-                                           semaphore,
-                                           request_url,
-                                           outfile)
-                                           )
-                tasks.append(task)
-        await asyncio.gather(*tasks)
-
 if __name__ == '__main__':
     script_start = timeit.default_timer()
     logging.basicConfig(filename=f'{logdir}/nymar_backfill.log',
