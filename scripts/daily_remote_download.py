@@ -10,15 +10,16 @@
 # Some editing of this script could make it request minute chunks
 # (for a whole day) or make hourly / minutely requests for data
 
-from pathlib import Path
-from obspy import UTCDateTime
-import timeit
+import asyncio
 import datetime
 import json
 import logging
-import itertools
+from pathlib import Path
+import timeit
 
-from data_pipeline import chunked_data_query, gather_chunks
+from obspy import UTCDateTime
+
+from data_pipeline import get_data
 
 log = logging.getLogger(__name__)
 logdir = Path('/home/joseph/logs')
@@ -60,37 +61,24 @@ if __name__ == '__main__':
     # check status page (https://{your-ip-here})
     location = ["00"]
     # set start / end date.
-    request_params = itertools.product(network, station_list,
-                                       location, channels)
-
     # try to get previous 2 days of data (current day will not be available)
     # Here we want to iterate over the preding days
     # so truncate the today datetime object
-    start = UTCDateTime(today.year, today.month, today.day) - backfill_span
-    end = UTCDateTime(today.year, today.month, today.day)
+    start = [UTCDateTime(today.year, today.month, today.day, 0, 0, 0) -
+             backfill_span]
+    end = [UTCDateTime(today.year, today.month, today.day, 0, 0, 0)]
     log.info(f'Query start time: {start}')
     log.info(f'Query end time: {end}')
     # ---------- End of variables to set ----------
 
-    for params in request_params:
-        # params should be form (net, stat, loc, channel)
-        log.info(f'Request data for {params}')
-        station_ip = ips_dict[params[1]]
-
-        chunked_data_query(station_ip, network=params[0], station=params[1],
-                           location=params[2], channel=params[3],
-                           starttime=start, endtime=end,
-                           data_dir=data_dir,
-                           chunksize=datetime.timedelta(hours=1),
-                           buffer=datetime.timedelta(seconds=120))
-        # gather_chunks(network=params[0], station=params[1],
-        #               location=params[2], channel=params[3],
-        #               starttime=start, endtime=end,
-        #               data_dir=data_dir,
-        #               gather_size=datetime.timedelta(days=1))
+    # call get_data
+    asyncio.run(get_data(network, station_list, location, channels,
+                start, end, station_ips=ips_dict,
+                data_dir=data_dir))
 
     script_end = timeit.default_timer()
     runtime = script_end - script_start
 
     log.info(f'Runtime is {runtime:4.2f} seconds,' +
-             f' or {runtime/60:4.2f} minutes, or {runtime/3600:4.2f} hours')
+             f'or {runtime/60:4.2f} minutes,' +
+             f' or {runtime/3600:4.2f} hours')

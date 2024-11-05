@@ -19,7 +19,6 @@ else:
 
 
 async def main():
-    script_start = datetime.datetime.now()
     logging.basicConfig(filename=f'{logdir}/nymar_backfill.log',
                         level=logging.INFO)
     log.info(f'Starting download. Time is {script_start}')
@@ -67,12 +66,12 @@ async def main():
                 tasks.append(task)
         await asyncio.gather(*tasks)
 
+
+if __name__ == '__main__':
+    script_start = datetime.datetime.now()
+    asyncio.run(main())
     script_end = datetime.datetime.now()
     runtime = (script_end - script_start).total_seconds()
     log.info(f'Runtime is {runtime:.2f} seconds,' +
              ' or {runtime / 60:.2f} minutes,' +
              ' or {runtime / 3600:.2f} hours.')
-
-
-if __name__ == '__main__':
-    asyncio.run(main())

@@ -21,7 +21,8 @@ setup(
     install_requires=[
         "numpy>=1.26.4",          # Example of a required package
         "obspy>=1.4.1",    # Specify version ranges, e.g., pandas 1.0 or higher
-        "requests>=2.32.3"
+        "requests>=2.32.3",
+        "aiohttp==3.10.10"
     ],
 
     # Classifiers for metadata, useful for PyPI (optional, but recommended)

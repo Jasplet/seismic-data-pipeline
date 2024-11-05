@@ -4,17 +4,227 @@
 # A set of functional tools to allow a user to make data scraping scripts
 # To get data from Guralp Certimus (and Certmius-like) instruments
 
-
-from pathlib import Path
-import obspy
-import datetime
-import requests
-import glob
-import logging
+import asyncio
 import aiohttp
+import datetime
+import glob
+import itertools
+import logging
+import requests
+from pathlib import Path
+
+import obspy
+
 log = logging.getLogger(__name__)
 
-# functions
+# Utility functions
+
+
+def iterate_chunks(start, end, chunksize):
+    '''
+    Function that makes an interator between two dates (start, end)
+    in intervals of <chunksize>.
+
+    Parameters:
+    ----------
+    start : UTCDateTime
+        start time
+    end : obspy.UTCDateTime
+        end time
+    chunksize : datetime.timedelta
+        timespan of chunks to split timespan into and iterate over
+    '''
+    chunk_start = start
+    while chunk_start < end:
+        yield chunk_start
+        chunk_start += chunksize
+
+
+def make_urls(ip_dict,
+              request_params,
+              data_dir='',
+              chunksize=datetime.timedelta(hours=1),
+              buffer=datetime.timedelta(seconds=150)):
+    '''
+    Makes urls for chunked requests.
+    Suitable for larger (or regular) data downloads
+
+    Default chunk size is 1 hour
+
+    Parameters:
+    ----------
+    ip_dict : dict
+        Dictionary of IP addresses of sensors.
+        Includes port number if any port forwarding needed
+    request_params : list
+        List of tuples (net, stat, loc, channel, start, end)
+    data_dir : str,
+        Directory to write data to
+    chunksize : datetime.timedelta
+        Size of chunked request
+    '''
+#   If data dir is empty then use current directory
+    if data_dir == '':
+        data_dir = Path.cwd()
+    urls = []
+    outfiles = []
+
+    for params in request_params:
+        if len(params) != 6:
+            log.error(f'Malformed params {params}')
+            raise ValueError('Too few parameters in params')
+        network = params[0]
+        station = params[1]
+        location = params[2]
+        channel = params[3]
+        start = params[4]
+        end = params[5]
+        sensor_ip = ip_dict[station]
+        if start > end:
+            raise ValueError('Start after End!')
+        if not isinstance(start,
+                          obspy.UTCDateTime
+                          ) or not isinstance(end, obspy.UTCDateTime):
+            raise TypeError("Start and end times must be of type UTCDateTime.")
+
+        for chunk_start in iterate_chunks(params[4], params[5], chunksize):
+            # Add 150 seconds buffer on either side
+            query_start = chunk_start - buffer
+            query_end = chunk_start + chunksize + buffer
+            year = chunk_start.year
+            month = chunk_start.month
+            day = chunk_start.day
+            hour = chunk_start.hour
+            mins = chunk_start.minute
+            sec = chunk_start.second
+
+            ddir = Path(f'{data_dir}/{year}/{month:02d}/{day:02d}')
+            ddir.mkdir(exist_ok=True, parents=True)
+            seed_params = f'{network}.{station}.{location}.{channel}'
+            date = f'{year}{month:02d}{day:02d}'
+            time = f'{hour:02d}{mins:02d}{sec:02d}'
+            timestamp = f'{date}T{time}'
+            outfile = ddir / f"{seed_params}.{timestamp}.mseed"
+            if outfile.is_file():
+                log.info(f'Data chunk {outfile} exists')
+                continue
+            else:
+                request_url = form_request(sensor_ip,
+                                           network,
+                                           station,
+                                           location,
+                                           channel,
+                                           query_start,
+                                           query_end
+                                           )
+                urls.append(request_url)
+                outfiles.append(outfile)
+
+    return urls, outfiles
+
+
+# Core asynchonrous functions. Using these is
+# better (i.e., faster) that making synchronous
+# requests.
+
+
+async def get_data(networks,
+                   stations,
+                   locations,
+                   channels,
+                   start,
+                   end,
+                   station_ips,
+                   data_dir=Path.cwd(),
+                   chunksize=datetime.timedelta(hours=1),
+                   buffer=datetime.timedelta(seconds=120),
+                   n_async_requests=3):
+
+    # Make all urls to query.
+    request_params = itertools.product(networks,
+                                       stations,
+                                       locations,
+                                       channels,
+                                       start,
+                                       end)
+
+    urls, outfiles = make_urls(station_ips,
+                               request_params,
+                               data_dir,
+                               chunksize,
+                               buffer)
+
+    log.info(f'There are {len(urls)} requests to make')
+    requests_by_ip = {}
+    for url, outfile in zip(urls, outfiles):
+        sensor_ip = url.split("/")[2]
+        if sensor_ip not in requests_by_ip:
+            requests_by_ip[sensor_ip] = []
+        requests_by_ip[sensor_ip].append((url, outfile))
+    # Set up asyncio's HTTP client session
+    semaphores = {sensor_ip: asyncio.Semaphore(n_async_requests)
+                  for sensor_ip in requests_by_ip}  # Adjust as needed
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        # Limit the number of simultaneous requests
+        # Adjust based on seismometer capacity
+        for sensor_ip, reqs in requests_by_ip.items():
+            semaphore = semaphores[sensor_ip]
+            for request_url, outfile in reqs:
+                task = asyncio.create_task(make_async_request(session,
+                                           semaphore,
+                                           request_url,
+                                           outfile)
+                                           )
+                tasks.append(task)
+        await asyncio.gather(*tasks)
+
+
+async def make_async_request(session, semaphore, request_url, outfile):
+    '''
+    Function to actually make the HTTP GET request from the Certimus
+
+    Gets one file, which corresponds to the request_url and writes
+    it out as miniSEED
+    to the specified outfile
+
+    Parameters:
+    ----------
+    request_url : str
+        The formed request url in the form:
+        http://{sensor_ip}/data?channel={net_code}.{stat_code}.{loc_code}.{channel}&from={startUNIX}&to={endUNIX}
+    '''
+    async with semaphore:
+        try:
+            async with session.get(request_url) as resp:
+                print(f'Request at {datetime.datetime.now()}')
+                print(request_url)
+                # Raise HTTP error for 4xx/5xx errors
+                resp.raise_for_status()
+
+                # Read binary data from the response
+                data = await resp.read()
+                if len(data) == 0:
+                    log.error('Request is empty!' +
+                              'Won’t write a zero byte file.')
+                    return
+                # Now write data
+                with open(outfile, "wb") as f:
+                    f.write(data)
+                log.info(f'Successfully wrote data to {outfile}')
+
+        except aiohttp.ClientResponseError as e:
+            log.error(f'Client error for {request_url}: {e}')
+            # Additional handling could go here, like retry logic
+        except Exception as e:
+            log.error(f'Unexpected error for {request_url}: {e}')
+        return
+
+
+# core synchronous functions
+# These functions are deprecated but i will
+# leave them here for users that may want to use them
+# these functions are still tested
 
 
 def form_request(sensor_ip,
@@ -53,14 +263,6 @@ def form_request(sensor_ip,
     request = f'http://{sensor_ip}/data?channel={seed_params}&{timeselect}'
 
     return request
-
-
-def iterate_chunks(start, end, chunksize):
-
-    chunk_start = start
-    while chunk_start < end:
-        yield chunk_start
-        chunk_start += chunksize
 
 
 def chunked_data_query(sensor_ip,
@@ -136,6 +338,7 @@ def chunked_data_query(sensor_ip,
 
     return
 
+
 def make_request(request_url, outfile):
     '''
     Function to actually make the HTTP GET request from the Certimus
@@ -169,107 +372,6 @@ def make_request(request_url, outfile):
         f.write(r.content)
 
     return
-
-
-def make_asnyc_urls(ip_dict,
-                    request_params,
-                    data_dir='',
-                    chunksize=datetime.timedelta(hours=1),
-                    buffer=datetime.timedelta(seconds=150)):
-    '''
-    Makes urls for chunked requests. Suitable for larger (or regular) data downloads
-
-    Default chunk size is 1 hour
-
-    Parameters:
-    ----------
-    ip_dict : dict
-        Dictionary of IP addresses of sensors. Includes port no if any port forwarding needed
-    request_params : list
-        List of tuples (net, stat, loc, channel, start, end)
-    data_dir : str,
-        Directory to write data to
-    chunksize : datetime.timedelta
-        Size of chunked request
-    '''
-#   If data dir is empty then use current directory
-    if data_dir == '':
-        data_dir = Path.cwd()
-    urls = []
-    outfiles = []
-    for params in request_params:
-        network = params[0]
-        station = params[1]
-        location = params[2]
-        channel = params[3]
-        sensor_ip = ip_dict[station]
-        for chunk_start in iterate_chunks(params[4], params[5], chunksize):
-            # Add 150 seconds buffer on either side
-            query_start = chunk_start - buffer
-            query_end = chunk_start + chunksize + buffer
-            year = chunk_start.year
-            month = chunk_start.month
-            day = chunk_start.day
-            hour = chunk_start.hour
-            mins = chunk_start.minute
-            sec = chunk_start.second
-
-            ddir = Path(f'{data_dir}/{year}/{month:02d}/{day:02d}')
-            ddir.mkdir(exist_ok=True, parents=True)
-            seed_params = f'{network}.{station}.{location}.{channel}'
-            timestamp = f'{year}{month:02d}{day:02d}T{hour:02d}{mins:02d}{sec:02d}'
-            outfile = ddir / f"{seed_params}.{timestamp}.mseed"
-            if outfile.is_file():
-                log.info(f'Data chunk {outfile} exists')
-                continue
-            else:
-                request_url = form_request(sensor_ip, network, station, location,
-                                           channel, query_start, query_end)
-                urls.append(request_url)
-                outfiles.append(outfile)
-
-    return urls, outfiles
-
-
-
-async def make_async_request(session, semaphore, request_url, outfile):
-    '''
-    Function to actually make the HTTP GET request from the Certimus
-
-    Gets one file, which corresponds to the request_url and writes
-    it out as miniSEED
-    to the specified outfile
-
-    Parameters:
-    ----------
-    request_url : str
-        The formed request url in the form:
-        http://{sensor_ip}/data?channel={net_code}.{stat_code}.{loc_code}.{channel}&from={startUNIX}&to={endUNIX}
-    '''
-    async with semaphore:
-        try:
-            async with session.get(request_url) as resp:
-                print(f'Request at {datetime.datetime.now()}')
-                print(request_url)
-                # Raise HTTP error for 4xx/5xx errors
-                resp.raise_for_status()
-
-                # Read binary data from the response
-                data = await resp.read()
-                if len(data) == 0:
-                    log.error('Request is empty! Won’t write a zero byte file.')
-                    return
-                # Now write data
-                with open(outfile, "wb") as f:
-                    f.write(data)
-                log.info(f'Successfully wrote data to {outfile}')
-        
-        except aiohttp.ClientResponseError as e:
-            log.error(f'Client error for {request_url}: {e}')
-            # Additional handling could go here, like retry logic
-        except Exception as e:
-            log.error(f'Unexpected error for {request_url}: {e}')
-        return
 
 
 def gather_chunks(network,

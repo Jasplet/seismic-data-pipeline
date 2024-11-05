@@ -16,15 +16,16 @@
 # Some editing of this script could make it request minute chunks
 # (for a whole day) or make hourly / minutely requests for data
 
-from pathlib import Path
-from obspy import UTCDateTime
-import timeit
+import asyncio
 import datetime
 import json
 import logging
-import itertools
+from pathlib import Path
+import timeit
 
-from data_pipeline import chunked_data_query, gather_chunks
+from obspy import UTCDateTime
+
+from data_pipeline import get_data
 
 log = logging.getLogger(__name__)
 logdir = Path('/home/joseph/logs')
@@ -35,7 +36,6 @@ else:
     logdir = Path.cwd()
     print(f'Logs written to cwd - {logdir}')
 
-
 if __name__ == '__main__':
     script_start = timeit.default_timer()
     logging.basicConfig(filename=f'{logdir}/nymar_backfill.log',
@@ -45,53 +45,43 @@ if __name__ == '__main__':
     # ========== Start of variable to set ==========
     # directory to write data to
     # change to /your/path/to/datadir
-    data_dir = Path('/home/joseph/data')
+    data_dir = Path('/Users/eart0593/Projects/Agile/NYMAR/' +
+                    'data_dump/')
     # Provide IP addresses. Here I have stored them in a JSON file to keep
     # them off GitHub.
-    with open('/home/joseph/nymar_zerotier_ips.json', 'r') as w:
+    with open('/Users/eart0593/Projects/Agile/NYMAR/nymar_zerotier_ips.json',
+              'r') as w:
         ips_dict = json.load(w)
+    # with open('/home/joseph/nymar_zerotier_ips.json', 'r') as w:
+    #     ips_dict = json.load(w)
 
     # Seedlink Parameters
     network = ["OX"]
-    station_list = ['NYM2', 'NYM3',
+    station_list = ['NYM1', 'NYM2', 'NYM3', 'NYM4',
                     'NYM5', 'NYM6', 'NYM7', 'NYM8']
-    station_liat = ['NYM7','NYM8']
     channels = ["HHZ",  "HHN", "HHE"]
 
     # Time span to get data for. Edit these start/end objects
     # to customise the timespan to get data for.
-    start = UTCDateTime(2024, 10, 24, 0, 0, 0)
-    end = UTCDateTime(2024, 10, 28, 0, 0, 0)
-
+    start = [UTCDateTime(2024, 11, 1, 0, 0, 0)]
+    end = [UTCDateTime(2024, 11, 2, 0, 0, 0)]
+    log.info(f'Query start time: {start}')
+    log.info(f'Query end time: {end}')
     # SET TO CORRECT CODE. should be '00' for veloctity data
     # will be somehing different for voltage,
     # check Certimus/Minimus status page (https://{your-ip-here})
     location = ["00"]
     # flatten seedlink parameters into an iterator of
     # tuples of all possible combinations.
-    request_params = itertools.product(network, station_list,
-                                       location, channels)
 
-    log.info(f'Query start time: {start}')
-    log.info(f'Query end time: {end}')
+    # params should be form (net, stat, loc, channel, start, end)
+    # here start/end are the start and end time of all data to request
     # ========== End of variables to set ==========
 
-    for params in request_params:
-        # params should be form (net, stat, loc, channel)
-        log.info(f'Request data for {params}')
-        station_ip = ips_dict[params[1]]
-
-        chunked_data_query(station_ip, network=params[0], station=params[1],
-                           location=params[2], channel=params[3],
-                           starttime=start, endtime=end,
-                           data_dir=data_dir,
-                           chunksize=datetime.timedelta(hours=1),
-                           buffer=datetime.timedelta(seconds=150))
-        gather_chunks(network=params[0], station=params[1],
-                      location=params[2], channel=params[3],
-                      starttime=start, endtime=end,
-                      data_dir=data_dir,
-                      gather_size=datetime.timedelta(days=1))
+    # call get_data
+    asyncio.run(get_data(network, station_list, location, channels,
+                start, end, station_ips=ips_dict,
+                data_dir=data_dir))
 
     script_end = timeit.default_timer()
     runtime = script_end - script_start
