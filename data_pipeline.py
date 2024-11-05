@@ -22,8 +22,8 @@ log = logging.getLogger(__name__)
 
 def iterate_chunks(start, end, chunksize):
     '''
-    Function that makes an interator between two dates (start, end) in 
-    intervals of <chunksize>.
+    Function that makes an interator between two dates (start, end)
+    in intervals of <chunksize>.
 
     Parameters:
     ----------
@@ -46,7 +46,8 @@ def make_urls(ip_dict,
               chunksize=datetime.timedelta(hours=1),
               buffer=datetime.timedelta(seconds=150)):
     '''
-    Makes urls for chunked requests. Suitable for larger (or regular) data downloads
+    Makes urls for chunked requests.
+    Suitable for larger (or regular) data downloads
 
     Default chunk size is 1 hour
 
@@ -87,7 +88,9 @@ def make_urls(ip_dict,
             ddir = Path(f'{data_dir}/{year}/{month:02d}/{day:02d}')
             ddir.mkdir(exist_ok=True, parents=True)
             seed_params = f'{network}.{station}.{location}.{channel}'
-            timestamp = f'{year}{month:02d}{day:02d}T{hour:02d}{mins:02d}{sec:02d}'
+            date = f'{year}{month:02d}{day:02d}'
+            time = f'{hour:02d}{mins:02d}{sec:02d}'
+            timestamp = f'{date}T{time}'
             outfile = ddir / f"{seed_params}.{timestamp}.mseed"
             if outfile.is_file():
                 log.info(f'Data chunk {outfile} exists')
@@ -112,17 +115,17 @@ def make_urls(ip_dict,
 # requests.
 
 
-async def main(networks,
-               stations,
-               locations,
-               channels,
-               start,
-               end,
-               station_ips,
-               data_dir=Path.cwd(),
-               chunksize=datetime.timedelta(hours=1),
-               buffer=datetime.timedelta(seconds=120),
-               n_async_requests=3):
+async def get_data(networks,
+                   stations,
+                   locations,
+                   channels,
+                   start,
+                   end,
+                   station_ips,
+                   data_dir=Path.cwd(),
+                   chunksize=datetime.timedelta(hours=1),
+                   buffer=datetime.timedelta(seconds=120),
+                   n_async_requests=3):
 
     # Make all urls to query.
     request_params = itertools.product(networks,
@@ -162,7 +165,6 @@ async def main(networks,
                                            )
                 tasks.append(task)
         await asyncio.gather(*tasks)
-        
 
 
 async def make_async_request(session, semaphore, request_url, outfile):
@@ -190,7 +192,8 @@ async def make_async_request(session, semaphore, request_url, outfile):
                 # Read binary data from the response
                 data = await resp.read()
                 if len(data) == 0:
-                    log.error('Request is empty! Won’t write a zero byte file.')
+                    log.error('Request is empty!' +
+                              'Won’t write a zero byte file.')
                     return
                 # Now write data
                 with open(outfile, "wb") as f:
