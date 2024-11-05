@@ -45,22 +45,27 @@ if __name__ == '__main__':
     # ========== Start of variable to set ==========
     # directory to write data to
     # change to /your/path/to/datadir
-    data_dir = Path('/home/joseph/data')
+    data_dir = Path('/Users/eart0593/Projects/Agile/NYMAR/' +
+                    'data_dump/')
     # Provide IP addresses. Here I have stored them in a JSON file to keep
     # them off GitHub.
-    with open('/home/joseph/nymar_zerotier_ips.json', 'r') as w:
+    with open('/Users/eart0593/Projects/Agile/NYMAR/nymar_zerotier_ips.json',
+              'r') as w:
         ips_dict = json.load(w)
+    # with open('/home/joseph/nymar_zerotier_ips.json', 'r') as w:
+    #     ips_dict = json.load(w)
 
     # Seedlink Parameters
     network = ["OX"]
-    station_list = ['NYM1', 'NYM2', 'NYM3', 'NYM4',
-                    'NYM5', 'NYM6', 'NYM7', 'NYM8']
+    station_list = ['NYM2']
+    # station_list = ['NYM1', 'NYM2', 'NYM3', 'NYM4',
+    #                 'NYM5', 'NYM6', 'NYM7', 'NYM8']
     channels = ["HHZ",  "HHN", "HHE"]
 
     # Time span to get data for. Edit these start/end objects
     # to customise the timespan to get data for.
-    start = UTCDateTime(2024, 10, 25, 0, 0, 0)
-    end = UTCDateTime(2024, 10, 27, 0, 0, 0)
+    start = [UTCDateTime(2024, 11, 1, 0, 0, 0)]
+    end = [UTCDateTime(2024, 11, 2, 0, 0, 0)]
     log.info(f'Query start time: {start}')
     log.info(f'Query end time: {end}')
     # SET TO CORRECT CODE. should be '00' for veloctity data
@@ -76,7 +81,8 @@ if __name__ == '__main__':
 
     # call get_data
     asyncio.run(get_data(network, station_list, location, channels,
-                start, end, data_dir=data_dir))
+                start, end, station_ips=ips_dict,
+                data_dir=data_dir))
 
     script_end = timeit.default_timer()
     runtime = script_end - script_start
