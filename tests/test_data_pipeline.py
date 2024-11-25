@@ -81,7 +81,7 @@ class TestDataPipeline(unittest.TestCase):
 
     @patch("data_pipeline.log")
     def test_make_urls_param_errors(self, mock_log):
-        faulty_ip_dict = {"ST01": "192.168.1.1"}
+        # faulty_ip_dict = {"ST01": "192.168.1.1"}
         data_dir = "/mocked_dir"
         # Case 1: Missing fields in request_params tuple
         malformed_request_params_1 = [
@@ -115,7 +115,7 @@ class TestDataPipeline(unittest.TestCase):
                 data_pipeline.make_urls(self.ip_dict,
                                         malformed_request_params_1,
                                         data_dir)
-            #Test error is logged
+            # Test error is logged
             mock_log.error.assert_called_once()
             # Expecting ValueError or similar for invalid date range
             with pytest.raises(ValueError):
@@ -129,7 +129,6 @@ class TestDataPipeline(unittest.TestCase):
                                         malformed_request_params_3,
                                         data_dir)
             mock_log.error.assert_called_once()
-
 
     def test_iterate_chunks(self):
         """Test iterate_chunks yields correct time intervals."""
