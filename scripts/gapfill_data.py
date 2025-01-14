@@ -20,14 +20,15 @@
 # Some editing of this script could make it request minute chunks
 # (for a whole day) or make hourly / minutely requests for data
 
-from pathlib import Path
-import timeit
+import asyncio
 import datetime
 import json
 import logging
+from pathlib import Path
 import pickle
+import timeit
 
-from data_pipeline import chunked_data_query
+from data_pipeline import get_data
 
 log = logging.getLogger(__name__)
 logdir = Path('/home/joseph/logs')
@@ -63,6 +64,8 @@ if __name__ == '__main__':
     with open(gapfile, 'rb') as f:
         request_params = pickle.load(f)
 
+    # Example of what request_params should look like...
+
     # request_params = [('OX','NYM2','00','HHN',
     #                   UTCDateTime(2024, 10, 1, 0, 0, 0),
     #                   UTCDateTime(2024, 10,2, 0, 0, 0)),
@@ -77,26 +80,9 @@ if __name__ == '__main__':
     #                   UTCDateTime(2024, 10,2, 0, 0, 0))]
     # ----------- End of variables to set ----------
 
-    for params in request_params:
-        # params should be form (net, stat, loc, channel, start, end)
-        if params[1] in ['NYM1', 'NYM4']:
-            continue
-
-        log.info(f'Request data for {params}')
-        station_ip = ips_dict[params[1]]
-
-        chunked_data_query(station_ip, network=params[0], station=params[1],
-                           location=params[2], channel=params[3],
-                           starttime=params[4], endtime=params[5],
-                           data_dir=data_dir,
-                           chunksize=datetime.timedelta(hours=1),
-                           buffer=datetime.timedelta(seconds=120))
-        # gather_chunks(network=params[0], station=params[1],
-        #               location=params[2], channel=params[3],
-        #               starttime=params[4], endtime=params[5],
-        #               data_dir=data_dir,
-        #               gather_size=datetime.timedelta(days=1)
-        #               )
+    asyncio.run(get_data(request_params,
+                         station_ips=ips_dict,
+                         data_dir=data_dir))
 
     script_end = timeit.default_timer()
     runtime = script_end - script_start
