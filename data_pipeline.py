@@ -8,7 +8,6 @@ import asyncio
 import aiohttp
 import datetime
 import glob
-import itertools
 import logging
 import requests
 from pathlib import Path
@@ -128,12 +127,7 @@ def make_urls(ip_dict,
 # requests.
 
 
-async def get_data(networks,
-                   stations,
-                   locations,
-                   channels,
-                   start,
-                   end,
+async def get_data(request_params,
                    station_ips,
                    data_dir=Path.cwd(),
                    chunksize=datetime.timedelta(hours=1),
@@ -141,13 +135,6 @@ async def get_data(networks,
                    n_async_requests=3):
 
     # Make all urls to query.
-    request_params = itertools.product(networks,
-                                       stations,
-                                       locations,
-                                       channels,
-                                       start,
-                                       end)
-
     urls, outfiles = make_urls(station_ips,
                                request_params,
                                data_dir,
