@@ -20,6 +20,7 @@ import asyncio
 import datetime
 import json
 import logging
+import itertools
 from pathlib import Path
 import timeit
 
@@ -56,9 +57,9 @@ if __name__ == '__main__':
     #     ips_dict = json.load(w)
 
     # Seedlink Parameters
-    network = ["OX"]
-    station_list = ['NYM1', 'NYM2', 'NYM3', 'NYM4',
-                    'NYM5', 'NYM6', 'NYM7', 'NYM8']
+    networks = ["OX"]
+    stations = ['NYM1', 'NYM2', 'NYM3', 'NYM4',
+                'NYM5', 'NYM6', 'NYM7', 'NYM8']
     channels = ["HHZ",  "HHN", "HHE"]
 
     # Time span to get data for. Edit these start/end objects
@@ -70,7 +71,7 @@ if __name__ == '__main__':
     # SET TO CORRECT CODE. should be '00' for veloctity data
     # will be somehing different for voltage,
     # check Certimus/Minimus status page (https://{your-ip-here})
-    location = ["00"]
+    locations = ["00"]
     # flatten seedlink parameters into an iterator of
     # tuples of all possible combinations.
 
@@ -78,10 +79,16 @@ if __name__ == '__main__':
     # here start/end are the start and end time of all data to request
     # ========== End of variables to set ==========
 
+    request_params = itertools.product(networks,
+                                       stations,
+                                       locations,
+                                       channels,
+                                       start,
+                                       end)
     # call get_data
-    asyncio.run(get_data(network, station_list, location, channels,
-                start, end, station_ips=ips_dict,
-                data_dir=data_dir))
+    asyncio.run(get_data(request_params,
+                         station_ips=ips_dict,
+                         data_dir=data_dir))
 
     script_end = timeit.default_timer()
     runtime = script_end - script_start
