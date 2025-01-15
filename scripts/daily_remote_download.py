@@ -47,12 +47,14 @@ if __name__ == '__main__':
     with open('/home/joseph/nymar_zerotier_ips.json', 'r') as w:
         ips_dict = json.load(w)
 
+    with open('home/joseph/nymar_request_params.json', 'r') as param_file:
+        params = json.load(param_file)
+
     # Seedlink Parameters
-    networks = ["OX"]
-    stations = ['NYM1', 'NYM2', 'NYM3', 'NYM4',
-                'NYM5', 'NYM6', 'NYM7', 'NYM8']
-    channels = ["HHZ",  "HHN", "HHE"]
-    locations = ["00"]
+    networks = params["networks"]
+    stations = params["stations"]
+    channels = params["channels"]
+    locations = params["locations"]
 
     # Set number of days to downlaod (for preliminary gapfilling)
     backfill_span = datetime.timedelta(days=2)
