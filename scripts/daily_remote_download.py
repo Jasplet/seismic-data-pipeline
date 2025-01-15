@@ -47,7 +47,7 @@ if __name__ == '__main__':
     with open('/home/joseph/nymar_zerotier_ips.json', 'r') as w:
         ips_dict = json.load(w)
 
-    with open('home/joseph/nymar_request_params.json', 'r') as param_file:
+    with open('/home/joseph/nymar_request_params.json', 'r') as param_file:
         params = json.load(param_file)
 
     # Seedlink Parameters
