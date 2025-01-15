@@ -12,6 +12,7 @@
 
 import asyncio
 import datetime
+import itertools
 import json
 import logging
 from pathlib import Path
@@ -47,10 +48,11 @@ if __name__ == '__main__':
         ips_dict = json.load(w)
 
     # Seedlink Parameters
-    network = ["OX"]
-    station_list = ['NYM1', 'NYM2', 'NYM3', 'NYM4',
-                    'NYM5', 'NYM6', 'NYM7', 'NYM8']
+    networks = ["OX"]
+    stations = ['NYM1', 'NYM2', 'NYM3', 'NYM4',
+                'NYM5', 'NYM6', 'NYM7', 'NYM8']
     channels = ["HHZ",  "HHN", "HHE"]
+    locations = ["00"]
 
     # Set number of days to downlaod (for preliminary gapfilling)
     backfill_span = datetime.timedelta(days=2)
@@ -59,7 +61,7 @@ if __name__ == '__main__':
     # SET TO CORRECT CODE. should be '00' for veloctity data
     # will be somehing different for voltage
     # check status page (https://{your-ip-here})
-    location = ["00"]
+
     # set start / end date.
     # try to get previous 2 days of data (current day will not be available)
     # Here we want to iterate over the preding days
@@ -71,10 +73,16 @@ if __name__ == '__main__':
     log.info(f'Query end time: {end}')
     # ---------- End of variables to set ----------
 
+    request_params = itertools.product(networks,
+                                       stations,
+                                       locations,
+                                       channels,
+                                       start,
+                                       end)
     # call get_data
-    asyncio.run(get_data(network, station_list, location, channels,
-                start, end, station_ips=ips_dict,
-                data_dir=data_dir))
+    asyncio.run(get_data(request_params,
+                         station_ips=ips_dict,
+                         data_dir=data_dir))
 
     script_end = timeit.default_timer()
     runtime = script_end - script_start
