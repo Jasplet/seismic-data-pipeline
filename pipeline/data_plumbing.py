@@ -21,12 +21,20 @@ from core_utils import iterate_chunks, form_request
 
 log = logging.getLogger(__name__)
 
-# Utility functions
-def make_urls(ip_dict,
-              request_params,
-              data_dir='',
-              chunksize=datetime.timedelta(hours=1),
-              buffer=datetime.timedelta(seconds=150)):
+SUPPORTED_FDSNWS = {'BGS-EIDA': 'https://eida.bgs.ac.uk/fdsnws/dataselect/1/query?'}
+
+# Note for self/interested readers
+
+# The HTTP requests arre not the same for
+# FDSNWS and for Certimus-like insturments
+# the queries are strucutred differently
+
+
+def make_urls_instrument(ip_dict,
+                         request_params,
+                         data_dir='',
+                         chunksize=datetime.timedelta(hours=1),
+                         buffer=datetime.timedelta(seconds=150)):
     '''
     Makes urls for chunked requests.
     Suitable for larger (or regular) data downloads
@@ -111,11 +119,27 @@ def make_urls(ip_dict,
 
 
 async def get_data(request_params,
-                   station_ips,
                    data_dir=Path.cwd(),
                    chunksize=datetime.timedelta(hours=1),
                    buffer=datetime.timedelta(seconds=120),
-                   n_async_requests=3):
+                   n_async_requests=3,
+                   is_fdsnws=False,
+                   fdsnws_name='BGS-EIDA',
+                   ips_dict=None):
+
+    if is_fdsnws:
+        if fdsnws_name in SUPPORTED_FDSNWS.keys():
+            log.info(f'Make request to {SUPPORTED_FDSNWS["fdsnws_name"]}')
+        else:
+            raise ValueError(f'{fdsnws_name} not supported!')
+#   Assume request is certiums-like if False
+    elif ips_dict is not None:
+#   Hooray we have IPs
+        log.info(f'Make requests to provided IPs for instruemnts')
+    else
+        raise ValueError('You need to provide IPs for the instruments!')
+    
+
 
     # Make all urls to query.
     urls, outfiles = make_urls(station_ips,
