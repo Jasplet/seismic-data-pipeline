@@ -1,9 +1,12 @@
-# data_pipepline.py
+# data_plumbing.py
 # Author: J Asplet - U Oxford
-# Date: 23/10/2024
+# Date: 23/10/2024. Refactored 16/1/2025
+
 # A set of functional tools to allow a user to make data scraping scripts
 # To get data from Guralp Certimus (and Certmius-like) instruments
-
+# Refactoring to generalsie this to include FDSNWS services
+# The intended use it the BGS EIDA node which runs FDNWS v 1.1.2
+# As of 16/1/2025
 import asyncio
 import aiohttp
 import datetime
@@ -14,69 +17,11 @@ from pathlib import Path
 
 import obspy
 
+from core_utils import iterate_chunks, form_request
+
 log = logging.getLogger(__name__)
 
 # Utility functions
-
-
-def iterate_chunks(start, end, chunksize):
-    '''
-    Function that makes an interator between two dates (start, end)
-    in intervals of <chunksize>.
-
-    Parameters:
-    ----------
-    start : UTCDateTime
-        start time
-    end : obspy.UTCDateTime
-        end time
-    chunksize : datetime.timedelta
-        timespan of chunks to split timespan into and iterate over
-    '''
-    chunk_start = start
-    while chunk_start < end:
-        yield chunk_start
-        chunk_start += chunksize
-
-
-def form_request(sensor_ip,
-                 network,
-                 station,
-                 location,
-                 channel,
-                 starttime,
-                 endtime):
-    '''
-    Form the request url
-
-    Parameters:
-    ----------
-    sensor_ip : str
-        IP address of sensor. Includes port no if any port forwarding needed
-    network : str
-        Network code
-    station : str
-        Station code
-    location : str
-        Location code
-    channel : str
-        Channel code
-    starttime : obspy.UTCDateTime
-        Start time of request
-    endtime : obspy.UTCDataTime
-        End time of request
-    '''
-
-    if starttime > endtime:
-        raise ValueError('Start of request if before the end!')
-
-    seed_params = f'{network}.{station}.{location}.{channel}'
-    timeselect = f'from={starttime.timestamp}&to={endtime.timestamp}'
-    request = f'http://{sensor_ip}/data?channel={seed_params}&{timeselect}'
-
-    return request
-
-
 def make_urls(ip_dict,
               request_params,
               data_dir='',

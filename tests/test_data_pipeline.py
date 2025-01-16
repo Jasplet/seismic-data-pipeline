@@ -5,7 +5,7 @@ import requests
 import datetime
 import pytest
 from obspy import UTCDateTime
-import data_pipeline  # Assuming this is saved as data_pipeline.py
+import pipeline.data_plumbing as data_plumbing  # Assuming this is saved as data_pipeline.py
 
 
 class TestDataPipeline(unittest.TestCase):
@@ -27,7 +27,7 @@ class TestDataPipeline(unittest.TestCase):
         time_req = f'{self.starttime.timestamp}&to={self.endtime.timestamp}'
         seed = f'{self.network}.{self.station}.{self.location}.{self.channel}'
         ex_url = f'http://{self.sensor_ip}/data?channel={seed}&from={time_req}'
-        url = data_pipeline.form_request(self.sensor_ip,
+        url = data_plumbing.form_request(self.sensor_ip,
                                          self.network,
                                          self.station,
                                          self.location,
@@ -38,7 +38,7 @@ class TestDataPipeline(unittest.TestCase):
 
         # Test ValueError on invalid time range
         with self.assertRaises(ValueError):
-            data_pipeline.form_request(self.sensor_ip,
+            data_plumbing.form_request(self.sensor_ip,
                                        self.network,
                                        self.station,
                                        self.location,
@@ -62,7 +62,7 @@ class TestDataPipeline(unittest.TestCase):
             chunksize = datetime.timedelta(hours=1)
             buffer = datetime.timedelta(seconds=150)
             data_dir = 'test/'
-            urls, outfiles = data_pipeline.make_urls(self.ip_dict,
+            urls, outfiles = data_plumbing.make_urls(self.ip_dict,
                                                      request_params,
                                                      data_dir,
                                                      chunksize,
@@ -112,27 +112,27 @@ class TestDataPipeline(unittest.TestCase):
             mock_mkdir.return_value = None  # Mock mkdir to do nothing
             # Expecting a ValueError for the missing end date
             with pytest.raises(ValueError):
-                data_pipeline.make_urls(self.ip_dict,
+                data_plumbing.make_urls(self.ip_dict,
                                         malformed_request_params_1,
                                         data_dir)
             # Test error is logged
             mock_log.error.assert_called_once()
             # Expecting ValueError or similar for invalid date range
             with pytest.raises(ValueError):
-                data_pipeline.make_urls(self.ip_dict,
+                data_plumbing.make_urls(self.ip_dict,
                                         malformed_request_params_2,
                                         data_dir)
             mock_log.error.assert_called_once()
             # Expecting TypeError or ValueError for incorrect date format
             with pytest.raises(TypeError):
-                data_pipeline.make_urls(self.ip_dict,
+                data_plumbing.make_urls(self.ip_dict,
                                         malformed_request_params_3,
                                         data_dir)
             mock_log.error.assert_called_once()
 
     def test_iterate_chunks(self):
         """Test iterate_chunks yields correct time intervals."""
-        chunks = list(data_pipeline.iterate_chunks(self.starttime,
+        chunks = list(data_plumbing.iterate_chunks(self.starttime,
                                                    self.endtime,
                                                    datetime.timedelta(
                                                        minutes=60)))
@@ -153,7 +153,7 @@ class TestDataPipeline(unittest.TestCase):
         """Test chunked_data_query forms and makes requests in chunks."""
         mock_form_request.side_effect = lambda *args, **kwargs: "mock_url"
 
-        data_pipeline.chunked_data_query(
+        data_plumbing.chunked_data_query(
             self.sensor_ip, self.network, self.station, self.location,
             self.channel, self.starttime, self.endtime, data_dir="test_data"
         )
@@ -174,7 +174,7 @@ class TestDataPipeline(unittest.TestCase):
         mock_get.return_value = mock_response
 
         with patch("builtins.open", unittest.mock.mock_open()) as mock_file:
-            data_pipeline.make_request("mock_url", "mock_outfile.mseed")
+            data_plumbing.make_request("mock_url", "mock_outfile.mseed")
             mock_file.assert_called_once_with("mock_outfile.mseed", "wb")
             mock_file().write.assert_called_once_with(b'some_binary_data')
 
@@ -190,7 +190,7 @@ class TestDataPipeline(unittest.TestCase):
 
         # Test that an HTTPError is raised as logged
         with self.assertRaises(requests.exceptions.HTTPError):
-            data_pipeline.make_request("mock_url", "mock_outfile.mseed")
+            data_plumbing.make_request("mock_url", "mock_outfile.mseed")
         # change status code back to 200 and test that an empty file is logged
         # and that make_request continues instead
         mock_response = MagicMock()
@@ -198,7 +198,7 @@ class TestDataPipeline(unittest.TestCase):
         mock_response.content = b''
         mock_get.return_value = mock_response
         with patch("builtins.open", unittest.mock.mock_open()):
-            data_pipeline.make_request("mock_url", "mock_outfile.mseed")
+            data_plumbing.make_request("mock_url", "mock_outfile.mseed")
             expected_call = "Request is empty! Won’t write a zero byte file."
             mock_log.error.assert_any_call(expected_call)
 
@@ -216,7 +216,7 @@ class TestDataPipeline(unittest.TestCase):
         mock_glob.return_value = [Path(f"file_{i}.mseed") for i in range(3)]
         mock_get_gaps.return_value = []
 
-        data_pipeline.gather_chunks(self.network,
+        data_plumbing.gather_chunks(self.network,
                                     self.station,
                                     self.location,
                                     self.channel,
@@ -256,7 +256,7 @@ class TestDataPipeline(unittest.TestCase):
         mock_obspy_read.return_value.get_gaps.return_value = ['some', 'gaps']
         mock_glob.return_value = [Path(f"file_{i}.mseed") for i in range(3)]
         with patch('builtins.open', unittest.mock.mock_open()):
-            data_pipeline.gather_chunks(
+            data_plumbing.gather_chunks(
                 self.network, self.station, self.location, self.channel,
                 self.starttime, self.endtime, data_dir="test_data",
                 gather_size=datetime.timedelta(days=1)
