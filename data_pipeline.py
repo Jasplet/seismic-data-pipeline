@@ -39,6 +39,44 @@ def iterate_chunks(start, end, chunksize):
         chunk_start += chunksize
 
 
+def form_request(sensor_ip,
+                 network,
+                 station,
+                 location,
+                 channel,
+                 starttime,
+                 endtime):
+    '''
+    Form the request url
+
+    Parameters:
+    ----------
+    sensor_ip : str
+        IP address of sensor. Includes port no if any port forwarding needed
+    network : str
+        Network code
+    station : str
+        Station code
+    location : str
+        Location code
+    channel : str
+        Channel code
+    starttime : obspy.UTCDateTime
+        Start time of request
+    endtime : obspy.UTCDataTime
+        End time of request
+    '''
+
+    if starttime > endtime:
+        raise ValueError('Start of request if before the end!')
+
+    seed_params = f'{network}.{station}.{location}.{channel}'
+    timeselect = f'from={starttime.timestamp}&to={endtime.timestamp}'
+    request = f'http://{sensor_ip}/data?channel={seed_params}&{timeselect}'
+
+    return request
+
+
 def make_urls(ip_dict,
               request_params,
               data_dir='',
@@ -212,44 +250,6 @@ async def make_async_request(session, semaphore, request_url, outfile):
 # These functions are deprecated but i will
 # leave them here for users that may want to use them
 # these functions are still tested
-
-
-def form_request(sensor_ip,
-                 network,
-                 station,
-                 location,
-                 channel,
-                 starttime,
-                 endtime):
-    '''
-    Form the request url
-
-    Parameters:
-    ----------
-    sensor_ip : str
-        IP address of sensor. Includes port no if any port forwarding needed
-    network : str
-        Network code
-    station : str
-        Station code
-    location : str
-        Location code
-    channel : str
-        Channel code
-    starttime : obspy.UTCDateTime
-        Start time of request
-    endtime : obspy.UTCDataTime
-        End time of request
-    '''
-
-    if starttime > endtime:
-        raise ValueError('Start of request if before the end!')
-
-    seed_params = f'{network}.{station}.{location}.{channel}'
-    timeselect = f'from={starttime.timestamp}&to={endtime.timestamp}'
-    request = f'http://{sensor_ip}/data?channel={seed_params}&{timeselect}'
-
-    return request
 
 
 def chunked_data_query(sensor_ip,
