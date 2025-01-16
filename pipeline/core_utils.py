@@ -1,4 +1,4 @@
-# Some core utility functions 
+# Some core utility functions
 
 def iterate_chunks(start, end, chunksize):
     '''
