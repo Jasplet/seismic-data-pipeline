@@ -149,7 +149,8 @@ def get_data(request_params,
                                   n_async_requests=n_async)
     else:
         raise ValueError('You need to provide IPs for the instruments!')
-    
+
+
 async def get_data_from_instruments(request_params,
                                     station_ips,
                                     data_dir,
@@ -166,11 +167,11 @@ async def get_data_from_instruments(request_params,
 
     '''
     # Make all urls to query.
-    urls, outfiles = make_urls(station_ips,
-                               request_params,
-                               data_dir,
-                               chunksize,
-                               buffer)
+    urls, outfiles = make_urls_instrument(station_ips,
+                                          request_params,
+                                          data_dir,
+                                          chunksize,
+                                          buffer)
 
     log.info(f'There are {len(urls)} requests to make')
     requests_by_ip = {}
