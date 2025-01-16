@@ -7,7 +7,7 @@ from obspy import UTCDateTime
 import pipeline.data_plumbing as data_plumbing
 
 
-class TestDataPipeline(unittest.TestCase):
+class TestLegacies(unittest.TestCase):
 
     def setUp(self):
         # Set up variables used across tests
