@@ -118,29 +118,55 @@ def make_urls_instrument(ip_dict,
 # requests.
 
 
-async def get_data(request_params,
-                   data_dir=Path.cwd(),
-                   chunksize=datetime.timedelta(hours=1),
-                   buffer=datetime.timedelta(seconds=120),
-                   n_async_requests=3,
-                   is_fdsnws=False,
-                   fdsnws_name='BGS-EIDA',
-                   ips_dict=None):
+def get_data(request_params,
+             data_dir=Path.cwd(),
+             chunksize=datetime.timedelta(hours=1),
+             buffer=datetime.timedelta(seconds=120),
+             is_fdsnws=False,
+             fdsnws_name='BGS-EIDA',
+             ips_dict=None,
+             **kwargs):
 
     if is_fdsnws:
         if fdsnws_name in SUPPORTED_FDSNWS.keys():
             log.info(f'Make request to {SUPPORTED_FDSNWS["fdsnws_name"]}')
+            get_data_fdsnws()
         else:
             raise ValueError(f'{fdsnws_name} not supported!')
 #   Assume request is certiums-like if False
     elif ips_dict is not None:
 #   Hooray we have IPs
-        log.info(f'Make requests to provided IPs for instruemnts')
-    else
+        log.info(f'Make requests to provided IPs for instruments')
+        if 'n_async_requests' in kwargs:
+            log.warning('Changing number of request per station')
+            n_async = kwargs['n_async_requests']
+        else:
+            n_async = 3
+
+        get_data_from_instruments(request_params,
+                                  ips_dict,
+                                  data_dir,
+                                  chunksize,
+                                  buffer,
+                                  n_async_requests=n_async)
+    else:
         raise ValueError('You need to provide IPs for the instruments!')
     
+async def get_data_from_instruments(request_params,
+                                    station_ips,
+                                    data_dir,
+                                    chunksize,
+                                    buffer,
+                                    n_async_requests):
+    '''
+    Requests waveform data from Certimus-like instruments. These
+    are done asynchronously to improve performence. For a Certimus-like
+    instrument the MAX number of requests it can handle concurrently is 3.
 
+    This function also uses Semaphores to send async requests to each sensor
+    concurrently (i.e., we send 3 requests to each station).
 
+    '''
     # Make all urls to query.
     urls, outfiles = make_urls(station_ips,
                                request_params,
