@@ -4,7 +4,8 @@ from unittest.mock import patch, MagicMock
 import requests
 import datetime
 from obspy import UTCDateTime
-import pipeline.data_plumbing as data_plumbing
+import pipeline.core_utils as core_utils
+from pipeline.legacy_functions import make_request, chunked_data_query
 
 
 class TestLegacies(unittest.TestCase):
@@ -22,8 +23,8 @@ class TestLegacies(unittest.TestCase):
 
     # Mock Path.mkdir so no directories are created
     @patch("pathlib.Path.mkdir")
-    @patch("data_pipeline.form_request")
-    @patch("data_pipeline.make_request")
+    @patch("pipeline.core_utils.form_request")
+    @patch("pipeline.legacy_functions.make_request")
     def test_chunked_data_query(self,
                                 mock_make_request,
                                 mock_form_request,
@@ -31,7 +32,7 @@ class TestLegacies(unittest.TestCase):
         """Test chunked_data_query forms and makes requests in chunks."""
         mock_form_request.side_effect = lambda *args, **kwargs: "mock_url"
 
-        data_plumbing.chunked_data_query(
+        chunked_data_query(
             self.sensor_ip, self.network, self.station, self.location,
             self.channel, self.starttime, self.endtime, data_dir="test_data"
         )
@@ -52,11 +53,11 @@ class TestLegacies(unittest.TestCase):
         mock_get.return_value = mock_response
 
         with patch("builtins.open", unittest.mock.mock_open()) as mock_file:
-            data_plumbing.make_request("mock_url", "mock_outfile.mseed")
+            make_request("mock_url", "mock_outfile.mseed")
             mock_file.assert_called_once_with("mock_outfile.mseed", "wb")
             mock_file().write.assert_called_once_with(b'some_binary_data')
 
-    @patch("data_pipeline.log")
+    @patch("pipeline.legacy_functions.log")
     @patch("requests.get")
     def test_make_request_fails(self, mock_get, mock_log):
         """Test make_request fails correctly."""
@@ -68,7 +69,7 @@ class TestLegacies(unittest.TestCase):
 
         # Test that an HTTPError is raised as logged
         with self.assertRaises(requests.exceptions.HTTPError):
-            data_plumbing.make_request("mock_url", "mock_outfile.mseed")
+            make_request("mock_url", "mock_outfile.mseed")
         # change status code back to 200 and test that an empty file is logged
         # and that make_request continues instead
         mock_response = MagicMock()
@@ -76,7 +77,7 @@ class TestLegacies(unittest.TestCase):
         mock_response.content = b''
         mock_get.return_value = mock_response
         with patch("builtins.open", unittest.mock.mock_open()):
-            data_plumbing.make_request("mock_url", "mock_outfile.mseed")
+            make_request("mock_url", "mock_outfile.mseed")
             expected_call = "Request is empty! Won’t write a zero byte file."
             mock_log.error.assert_any_call(expected_call)
 

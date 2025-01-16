@@ -19,7 +19,7 @@ class TestDataPipeline(unittest.TestCase):
         self.endtime = UTCDateTime("2024-10-01T02:00:00")
         self.ip_dict = {"TEST": self.sensor_ip}
 
-    def test_make_urls(self):
+    def test_make_urls_instrument(self):
         request_params = [
                          (self.network,
                           self.station,
@@ -35,11 +35,11 @@ class TestDataPipeline(unittest.TestCase):
             chunksize = datetime.timedelta(hours=1)
             buffer = datetime.timedelta(seconds=150)
             data_dir = 'test/'
-            urls, outfiles = data_plumbing.make_urls(self.ip_dict,
-                                                     request_params,
-                                                     data_dir,
-                                                     chunksize,
-                                                     buffer)
+            urls, outfiles = data_plumbing.make_urls_instrument(self.ip_dict,
+                                                                request_params,
+                                                                data_dir,
+                                                                chunksize,
+                                                                buffer)
             # Check that the number of URLs matches
             # the expected number of chunks
             assert len(urls) == 2

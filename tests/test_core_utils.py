@@ -1,6 +1,4 @@
 import unittest
-from unittest.mock import patch
-from pathlib import Path
 import datetime
 from obspy import UTCDateTime
 import pipeline.core_utils as core_utils
@@ -43,39 +41,6 @@ class TestCoreUtils(unittest.TestCase):
                                     self.channel,
                                     self.endtime,
                                     self.starttime)
-
-    def test_make_urls(self):
-        request_params = [
-                         (self.network,
-                          self.station,
-                          self.location,
-                          self.channel,
-                          self.starttime,
-                          self.endtime)
-                          ]
-
-        with patch.object(Path, 'mkdir') as mock_mkdir:
-            mock_mkdir.return_value = None  # Mock mkdir to do nothing
-
-            chunksize = datetime.timedelta(hours=1)
-            buffer = datetime.timedelta(seconds=150)
-            data_dir = 'test/'
-            urls, outfiles = core_utils.make_urls(self.ip_dict,
-                                                  request_params,
-                                                  data_dir,
-                                                  chunksize,
-                                                  buffer)
-            # Check that the number of URLs matches
-            # the expected number of chunks
-            assert len(urls) == 2
-            assert len(outfiles) == 2
-            # Verify URLs are formatted correctly
-            assert urls[0].startswith("http://192.168.1.1")
-            # Timestamp is included
-            assert f'{(self.starttime - buffer).timestamp}' in urls[0]
-            # Verify outfile paths
-            assert str(outfiles[0]).startswith(data_dir)
-            assert outfiles[0].suffix == ".mseed"
 
     def test_iterate_chunks(self):
         """Test iterate_chunks yields correct time intervals."""
