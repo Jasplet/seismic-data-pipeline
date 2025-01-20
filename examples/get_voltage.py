@@ -15,6 +15,7 @@
 
 import asyncio
 import datetime
+import itertools
 import json
 import logging
 from pathlib import Path
@@ -52,21 +53,21 @@ if __name__ == '__main__':
     #     ips_dict = json.load(w)
 
     # Seedlink Parameters
-    network = ["OX"]
-    station_list = ['NYM2', 'NYM3',
-                    'NYM5', 'NYM6', 'NYM7', 'NYM8']
+    networks = ["OX"]
+    stations = ['NYM2', 'NYM3', 'NYM5',
+                'NYM6', 'NYM7', 'NYM8']
     channels = ["ME4"]
 
     # Time span to get data for. Edit these start/end objects
     # to customise the timespan to get data for.
     start = [UTCDateTime(2023, 11, 1, 0, 0, 0)]
-    end = [UTCDateTime(2024, 11, 24, 0, 0, 0)]
+    end = [UTCDateTime(2024, 11, 1, 0, 0, 0)]
     log.info(f'Query start time: {start}')
     log.info(f'Query end time: {end}')
     # SET TO CORRECT CODE. should be '00' for veloctity data
     # will be somehing different for voltage,
     # check Certimus/Minimus status page (https://{your-ip-here})
-    location = ["1K"]
+    locations = ["1K"]
     # flatten seedlink parameters into an iterator of
     # tuples of all possible combinations.
 
@@ -74,10 +75,18 @@ if __name__ == '__main__':
     # here start/end are the start and end time of all data to request
     # ========== End of variables to set ==========
 
+    request_params = itertools.product(networks,
+                                       stations,
+                                       locations,
+                                       channels,
+                                       start,
+                                       end)
     # call get_data
-    asyncio.run(get_data(network, station_list, location, channels,
-                start, end, station_ips=ips_dict,
-                data_dir=data_dir))
+    asyncio.run(get_data(request_params,
+                         start,
+                         end,
+                         station_ips=ips_dict,
+                         data_dir=data_dir))
 
     script_end = timeit.default_timer()
     runtime = script_end - script_start
