@@ -3,13 +3,13 @@
 # Here "Gaps" as assumed to be missing day files
 # It is still possible that there may be gaps within
 # the files - check your logs, these will have been logged
-
+import obspy
 from obspy import UTCDateTime
 import itertools
 import pickle
 from pathlib import Path
 from datetime import timedelta
-from data_pipeline import iterate_chunks
+from pipeline.core_utils import iterate_chunks
 
 # Seedlink Parameters
 network = ["OX"]
@@ -49,7 +49,15 @@ for h in iterate_chunks(start, end, chunksize):
         f = ddir / fname
         if f.is_file():
             # could add check that miniseed file is as we expect
-            continue
+            st = obspy.read(f)
+            gaps = st.get_gaps(min_gap=1)
+            if len(gaps) > 0:
+                print(f'{f} has {len(gaps)} data gaps')
+                gap_params = (params[0], params[1], params[2],
+                              params[3], h, h + chunksize)
+                data_gaps.append(gap_params)
+            else:
+                continue
         else:
             print(f'{f} is missing')
             gap_params = (params[0], params[1], params[2],
