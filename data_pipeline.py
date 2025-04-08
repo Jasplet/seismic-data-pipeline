@@ -223,6 +223,10 @@ async def make_async_request(session, semaphore, request_url, outfile):
         try:
             async with session.get(request_url) as resp:
                 print(f'Request at {datetime.datetime.now()}')
+                # Print start and end times in a human readable format
+                st = obspy.UTCDateTime(float(request_url.split('=')[-2].strip('&to')))
+                ed = obspy.UTCDateTime(float(request_url.split('=')[-1]))
+                print(f'Requesting {st} to {ed}')
                 print(request_url)
                 # Raise HTTP error for 4xx/5xx errors
                 resp.raise_for_status()
