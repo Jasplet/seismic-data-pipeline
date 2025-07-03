@@ -9,12 +9,13 @@ import itertools
 import pickle
 from pathlib import Path
 from datetime import timedelta
-from pipeline.core_utils import iterate_chunks
+from data_pipeline import iterate_chunks
 
 # Seedlink Parameters
 network = ["OX"]
 station_list = ['NYM1', 'NYM2', 'NYM3', 'NYM4',
                 'NYM5', 'NYM6', 'NYM7', 'NYM8']
+station_list = ['NYM1']
 channels = ["HHZ",  "HHN", "HHE"]
 location = ["00"]
 
@@ -22,13 +23,13 @@ expected_file_params = [p for p in itertools.product(network, station_list,
                         location, channels)]
 
 
-start = UTCDateTime(2024, 7, 1)
-end = UTCDateTime(2024, 10, 31)
+start = UTCDateTime(2024, 11, 1)
+end = UTCDateTime(2025, 1, 1)
 
-dpath = Path('/home/eart0593/NYMAR/raw_data')
+dpath = Path('/Volumes/NYMAR_DATA/NYMAR/data_dump/NYM1')
 print(f'Assuming data is in: {dpath}')
 
-outfile = 'July_Oct_missing_files.pkl'
+outfile = 'NYM1_missing_files_Nov_1st_thru_Dec31st_2024.pkl'
 
 data_gaps = []
 
@@ -63,6 +64,9 @@ for h in iterate_chunks(start, end, chunksize):
             gap_params = (params[0], params[1], params[2],
                           params[3], h, h + chunksize)
             data_gaps.append(gap_params)
+
+print(f'There are {len(data_gaps)} files missing or with gaps!')
+print(f'From {start} to {end}')
 
 with open(f'{dpath}/{outfile}', 'wb') as f:
     pickle.dump(data_gaps, f)

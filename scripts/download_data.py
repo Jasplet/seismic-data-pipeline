@@ -56,7 +56,7 @@ if __name__ == '__main__':
     # with open('/home/joseph/nymar_zerotier_ips.json', 'r') as w:
     #     ips_dict = json.load(w)
 
-    with open('home/joseph/nymar_request_params.json', 'r') as param_file:
+    with open('/Users/eart0593/Projects/Agile/NYMAR/nymar_request_params.json', 'r') as param_file:
         params = json.load(param_file)
 
     # Seedlink Parameters
@@ -67,8 +67,8 @@ if __name__ == '__main__':
 
     # Time span to get data for. Edit these start/end objects
     # to customise the timespan to get data for.
-    start = [UTCDateTime(2024, 11, 1, 0, 0, 0)]
-    end = [UTCDateTime(2024, 11, 2, 0, 0, 0)]
+    start = [UTCDateTime(2025, 4, 3, 13, 0, 0)]
+    end = [UTCDateTime(2025, 4, 3, 15, 0, 0)]
     log.info(f'Query start time: {start}')
     log.info(f'Query end time: {end}')
     # SET TO CORRECT CODE. should be '00' for veloctity data
