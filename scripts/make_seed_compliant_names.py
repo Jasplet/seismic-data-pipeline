@@ -61,7 +61,7 @@ def rename_to_seed_compliant(single_date, net, sta, loc, chan):
         tr.stats.network = fdsn_network[0]
     # Rename to FDSN compliant name
     new_name = f"{fdsn_network[0]}.{sta}.00.{chan}.{year}.{day:03d}.mseed"
-    out_dir = path_out / f"{year}/{fdsn_network[0]}/{sta}/"
+    out_dir = path_out / f"{year}/{fdsn_network[0]}/{sta}/{chan}/"
     out_dir.mkdir(parents=True, exist_ok=True)
     out_file = out_dir / new_name
     st.write(out_file, format="MSEED")
