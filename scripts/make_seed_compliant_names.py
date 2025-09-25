@@ -15,11 +15,11 @@ from data_pipeline import iterate_chunks
 
 path = Path("/data/eart0593/NYMAR/raw_data/")
 # local dev path
-path = Path("/Users/eart0593/Projects/Agile/NYMAR/data_dump/")
+# path = Path("/Users/eart0593/Projects/Agile/NYMAR/data_dump/")
 
 path_out = Path("/data/eart0593/NYMAR/seed_compliant/archive/")
 # local dev path
-path_out = Path("/Users/eart0593/Projects/Agile/NYMAR/archive/")
+# path_out = Path("/Users/eart0593/Projects/Agile/NYMAR/archive/")
 path_out.mkdir(parents=True, exist_ok=True)
 
 fdsn_network = ["3N"]
@@ -71,8 +71,8 @@ def rename_to_seed_compliant(params):
 
 if __name__ == "__main__":
     start_time = time.time()
-    start = UTCDateTime(2025, 4, 3)
-    end = UTCDateTime(2025, 4, 4)
+    start = UTCDateTime(2023, 9, 29)
+    end = UTCDateTime(2023, 10, 1)
 
     dates = list(iterate_chunks(start, end, timedelta(days=1)))
     params = itertools.product(
