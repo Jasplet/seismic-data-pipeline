@@ -50,7 +50,7 @@ def rename_to_seed_compliant(single_date, net, sta, loc, chan):
         print(f"Path {path_to_data} does not exist, skipping...")
         return
     expected_file = f"{net}.{sta}.{loc}.{chan}.{curr_dstamp}T*.mseed"
-    files = list(path_to_data.rglob(f"*{expected_file}"))
+    files = list(path_to_data.rglob(f"{expected_file}"))
     if len(files) == 0:
         print(f"Missing file: {expected_file}")
         return
