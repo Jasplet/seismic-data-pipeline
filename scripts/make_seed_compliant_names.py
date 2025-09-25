@@ -31,8 +31,7 @@ channels = ["HHZ", "HHN", "HHE"]
 location = ["00"]
 
 
-def rename_to_seed_compliant(params):
-    (single_date, net, sta, loc, chan) = params
+def rename_to_seed_compliant(single_date, net, sta, loc, chan):
     year = single_date.year
     day = single_date.julday
     curr_dstamp = single_date.strftime("%Y%m%d")
