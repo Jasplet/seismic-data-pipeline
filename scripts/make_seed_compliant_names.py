@@ -36,6 +36,16 @@ def rename_to_seed_compliant(single_date, net, sta, loc, chan):
     day = single_date.julday
     curr_dstamp = single_date.strftime("%Y%m%d")
     path_to_data = path / f"{year}/{single_date.month:02d}/{single_date.day:02d}"
+
+    new_name = f"{fdsn_network[0]}.{sta}.00.{chan}.{year}.{day:03d}.mseed"
+    out_dir = path_out / f"{year}/{fdsn_network[0]}/{sta}/{chan}/"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_file = out_dir / new_name
+    # If outfile already exists, skip
+    if out_file.exists():
+        print(f"{out_file} already exists, skipping...")
+        return
+
     if not path_to_data.exists():
         print(f"Path {path_to_data} does not exist, skipping...")
         return
@@ -57,11 +67,7 @@ def rename_to_seed_compliant(single_date, net, sta, loc, chan):
     # Change network code to fdsn one
     for tr in st:
         tr.stats.network = fdsn_network[0]
-    # Rename to FDSN compliant name
-    new_name = f"{fdsn_network[0]}.{sta}.00.{chan}.{year}.{day:03d}.mseed"
-    out_dir = path_out / f"{year}/{fdsn_network[0]}/{sta}/{chan}/"
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_file = out_dir / new_name
+    # Rename to FDSN compliant name and write out
     st.write(out_file, format="MSEED")
 
 
