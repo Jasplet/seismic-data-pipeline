@@ -71,7 +71,7 @@ def rename_to_seed_compliant(single_date, net, sta, loc, chan):
 if __name__ == "__main__":
     start_time = time.time()
     start = UTCDateTime(2023, 9, 29)
-    end = UTCDateTime(2023, 10, 1)
+    end = UTCDateTime(2023, 11, 1)
 
     dates = list(iterate_chunks(start, end, timedelta(days=1)))
     params = itertools.product(
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     )
     # Loop over each day and each station/channel/location/network
 
-    nproc = 1
+    nproc = 20
 
     with Pool(nproc) as p:
         p.starmap(rename_to_seed_compliant, params)
