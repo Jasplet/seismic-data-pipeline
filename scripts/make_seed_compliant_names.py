@@ -53,9 +53,8 @@ def rename_to_seed_compliant(single_date, net, sta, loc, chan):
     # Merge to fill gaps with zeros
     if len(st) > 1:
         print(
-            f"Merging {len(st)} files for {sta} {chan} on {single_date}. Gaps filled with zeros"
+            f"Multiple {len(st)} files for {sta} {chan} on {single_date}. Assume these are hourly files. Gaps not filled"
         )
-        st.merge(method=-1)
     # Change network code to fdsn one
     for tr in st:
         tr.stats.network = fdsn_network[0]
