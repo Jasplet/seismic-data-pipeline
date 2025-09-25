@@ -36,7 +36,6 @@ def rename_to_seed_compliant(single_date, net, sta, loc, chan):
     day = single_date.julday
     curr_dstamp = single_date.strftime("%Y%m%d")
     path_to_data = path / f"{year}/{single_date.month:02d}/{single_date.day:02d}"
-    print(f"Processing data for {single_date} in {path_to_data}")
     if not path_to_data.exists():
         print(f"Path {path_to_data} does not exist, skipping...")
         return
@@ -64,7 +63,6 @@ def rename_to_seed_compliant(single_date, net, sta, loc, chan):
     out_dir.mkdir(parents=True, exist_ok=True)
     out_file = out_dir / new_name
     st.write(out_file, format="MSEED")
-    print(f"Wrote {out_file}")
 
 
 if __name__ == "__main__":
