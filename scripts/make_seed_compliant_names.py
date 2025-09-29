@@ -43,11 +43,11 @@ def rename_to_seed_compliant(single_date, net, sta, loc, chan):
     out_file = out_dir / new_name
     # If outfile already exists, skip
     if out_file.exists():
-        print(f"{out_file} already exists, skipping...")
+        #print(f"{out_file} already exists, skipping...")
         return
 
     if not path_to_data.exists():
-        print(f"Path {path_to_data} does not exist, skipping...")
+        #print(f"Path {path_to_data} does not exist, skipping...")
         return
     expected_file = f"{net}.{sta}.{loc}.{chan}.{curr_dstamp}T*.mseed"
     files = list(path_to_data.rglob(f"{expected_file}"))
@@ -58,7 +58,12 @@ def rename_to_seed_compliant(single_date, net, sta, loc, chan):
     # Read in all files found (should be one per hour)
     st = obspy.Stream()
     for f in files:
-        st += obspy.read(f)
+        try:
+            st += obspy.read(f)
+        except TypeError:
+            print(f"TypeError for {path_to_data}/{expected_file}, deleting")
+            p = path_to_data / expected_file
+            p.unlink()
     # Merge to fill gaps with zeros
     if len(st) > 1:
         print(
@@ -68,13 +73,15 @@ def rename_to_seed_compliant(single_date, net, sta, loc, chan):
     for tr in st:
         tr.stats.network = fdsn_network[0]
     # Rename to FDSN compliant name and write out
-    st.write(out_file, format="MSEED")
-
+    if len(st) > 0:
+        st.write(out_file, format="MSEED")
+    
+    return
 
 if __name__ == "__main__":
     start_time = time.time()
-    start = UTCDateTime(2023, 9, 29)
-    end = UTCDateTime(2024, 10, 1)
+    start = UTCDateTime(2024, 10, 1)
+    end = UTCDateTime(2025, 10, 1)
 
     dates = list(iterate_chunks(start, end, timedelta(days=1)))
     params = itertools.product(
