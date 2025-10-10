@@ -48,7 +48,7 @@ if __name__ == '__main__':
     # ---------- Start of variable to set ----------
     # directory to write data to
     data_dir = Path('/Volumes/NYMAR_DATA/NYMAR/' +
-                    'data_dump/NYM1/')
+                    'data_from_bridge_server')
     # change to /your/path/to/datadir
     # data_dir = Path.cwd()
     # Provide IP addresses. Here I have stored them in a JSON file to keep
@@ -61,7 +61,7 @@ if __name__ == '__main__':
     # To use this script as an exmample to build your own code which finds
     # gaps that need filling and then sends the requests.
     # gapfile = '/Users/eart0593/Projects/Agile/NYMAR/July_Oct_missing_files.pkl'
-    gapfile = f'{data_dir}/NYM1_missing_files_Nov_1st_thru_Dec31st_2024.pkl'
+    gapfile = f'/Volumes/NYMAR_DATA/NYMAR/NYMAR_missing_files_y2_1_10_25.pkl'
     with open(gapfile, 'rb') as f:
         request_params = pickle.load(f)
 
