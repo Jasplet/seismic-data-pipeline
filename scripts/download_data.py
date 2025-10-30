@@ -61,14 +61,14 @@ if __name__ == "__main__":
     # Seedlink Parameters
     networks = params["networks"]
     stations = params["stations"]
-    stations = ["NYM6"]
+    stations = ["NYM1"]
     channels = params["channels"]
     locations = params["locations"]
 
     # Time span to get data for. Edit these start/end objects
     # to customise the timespan to get data for.
-    start = [UTCDateTime(2024, 7, 16, 0, 0, 0)]
-    end = [UTCDateTime(2024, 8, 10, 0, 0, 0)]
+    start = [UTCDateTime(2024, 9, 30, 0, 0, 0)]
+    end = [UTCDateTime(2024, 10, 1, 0, 0, 0)]
     log.info(f"Query start time: {start}")
     log.info(f"Query end time: {end}")
     # SET TO CORRECT CODE. should be '00' for veloctity data

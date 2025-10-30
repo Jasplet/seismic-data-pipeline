@@ -31,38 +31,37 @@ import timeit
 from data_pipeline import get_data
 
 log = logging.getLogger(__name__)
-logdir = Path('/home/joseph/logs')
+logdir = Path("/home/joseph/logs")
 # test is logdir exists, if not then set to cwd
 if logdir.exists():
-    print(f'Logs written to {logdir}')
+    print(f"Logs written to {logdir}")
 else:
     logdir = Path.cwd()
-    print(f'Logs written to cwd {logdir}')
+    print(f"Logs written to cwd {logdir}")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     script_start = timeit.default_timer()
-    logging.basicConfig(filename=f'{logdir}/nymar_backfill.log',
-                        level=logging.INFO)
-    log.info(f'Starting download. Time is {datetime.datetime.now()}')
+    logging.basicConfig(filename=f"{logdir}/nymar_backfill.log", level=logging.INFO)
+    log.info(f"Starting download. Time is {datetime.datetime.now()}")
 
     # ---------- Start of variable to set ----------
     # directory to write data to
-    data_dir = Path('/Volumes/NYMAR_DATA/NYMAR/' +
-                    'data_from_bridge_server')
+    data_dir = Path("/Volumes/NYMAR_Y1/" + "NYM1_gap_filling")
     # change to /your/path/to/datadir
     # data_dir = Path.cwd()
     # Provide IP addresses. Here I have stored them in a JSON file to keep
     # them off GitHub.
-    with open('/Users/eart0593/Projects/Agile/NYMAR/nymar_zerotier_ips.json',
-              'r') as w:
+    with open("/Users/eart0593/Projects/Agile/NYMAR/nymar_zerotier_ips.json", "r") as w:
         ips_dict = json.load(w)
 
     # Set up request parameters here. This is an example only. You may want
     # To use this script as an exmample to build your own code which finds
     # gaps that need filling and then sends the requests.
     # gapfile = '/Users/eart0593/Projects/Agile/NYMAR/July_Oct_missing_files.pkl'
-    gapfile = f'/Volumes/NYMAR_DATA/NYMAR/NYMAR_missing_files_y2_1_10_25.pkl'
-    with open(gapfile, 'rb') as f:
+    gapfile = (
+        "/Users/eart0593/Projects/Agile/NYMAR/data-gaps/NYM1_missing_files_30_10_25.pkl"
+    )
+    with open(gapfile, "rb") as f:
         request_params = pickle.load(f)
 
     # Example of what request_params should look like...
@@ -81,12 +80,12 @@ if __name__ == '__main__':
     #                   UTCDateTime(2024, 10,2, 0, 0, 0))]
     # ----------- End of variables to set ----------
 
-    asyncio.run(get_data(request_params,
-                         station_ips=ips_dict,
-                         data_dir=data_dir))
+    asyncio.run(get_data(request_params, station_ips=ips_dict, data_dir=data_dir))
 
     script_end = timeit.default_timer()
     runtime = script_end - script_start
 
-    log.info(f'Runtime is {runtime:4.2f} seconds, ' +
-             f'or {runtime/60:4.2f} minutes, or {runtime/3600:4.2f} hours')
+    log.info(
+        f"Runtime is {runtime:4.2f} seconds, "
+        + f"or {runtime/60:4.2f} minutes, or {runtime/3600:4.2f} hours"
+    )
