@@ -4,14 +4,16 @@
 
 # The primary job is to change the network code from "OX" to "3N"
 # Also merge files to be day files.
-import obspy
-import time
-from obspy import UTCDateTime
 import itertools
+import time
+from datetime import timedelta
 from multiprocessing import Pool
 from pathlib import Path
-from datetime import timedelta
-from data_pipeline import iterate_chunks
+
+import obspy
+from obspy import UTCDateTime
+
+from pipeline.data_pipeline import iterate_chunks
 
 path = Path("/data/eart0593/NYMAR/raw_data/")
 # local dev path
@@ -97,5 +99,5 @@ if __name__ == "__main__":
 
     end_time = time.time()
     print(f"Processing took {end_time - start_time} seconds")
-    print(f"Or {(end_time - start_time)/60.0} minutes")
+    print(f"Or {(end_time - start_time) / 60.0} minutes")
 # Example call to script:
