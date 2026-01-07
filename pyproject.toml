@@ -1,8 +1,10 @@
 [project]
 name = "seismic-data-pipeline"
 version = "0.1.0"
-description = "Add your description here"
+description = "Package to get seismic data from Guralp digitisers via HTTP requests"
 readme = "README.md"
+author= "Joseph Asplet, University of Oxford <joseph.asplet@earth.ox.ac.uk>"
+urls = "https://github.com/Jasplet/nymar-data-pipeline"
 requires-python = ">=3.10"
 dependencies = [
     "aiohttp>=3.13.3",
