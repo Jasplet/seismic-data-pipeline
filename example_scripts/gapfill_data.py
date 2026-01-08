@@ -28,7 +28,7 @@ import pickle
 import timeit
 from pathlib import Path
 
-from pipeline.data_pipeline import get_data
+from pipeline.utils import get_data
 
 log = logging.getLogger(__name__)
 logdir = Path("/home/joseph/logs")

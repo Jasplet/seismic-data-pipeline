@@ -7,7 +7,7 @@ from pathlib import Path
 
 import aiohttp  # For async HTTP requests
 
-from pipeline.data_pipeline import make_asnyc_urls, make_async_request
+from pipeline.utils import make_asnyc_urls, make_async_request
 
 log = logging.getLogger(__name__)
 logdir = Path("/home/joseph/logs")

@@ -11,7 +11,7 @@ from pathlib import Path
 import obspy
 from obspy import UTCDateTime
 
-from pipeline.data_pipeline import iterate_chunks
+from pipeline.utils import iterate_chunks
 
 # Seedlink Parameters
 network = ["OX"]
