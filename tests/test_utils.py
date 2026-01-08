@@ -66,13 +66,15 @@ def test_iterate_chunks(start, end, chunksize, expected_chunks):
 @pytest.mark.parametrize(
     "sensor_ip,network,station,location,channel,starttime,endtime",
     [
-        "192.168.0.0",
-        "XX",
-        "TEST",
-        "00",
-        "XXZ",
-        UTCDateTime("2024-01-01T01:00:00"),
-        UTCDateTime("2024-01-01T02:00:00"),
+        (
+            "192.168.0.0",
+            "XX",
+            "TEST",
+            "00",
+            "XXZ",
+            UTCDateTime("2024-01-01T01:00:00"),
+            UTCDateTime("2024-01-01T02:00:00"),
+        )
     ],
 )
 def test_form_request(
