@@ -76,6 +76,31 @@ def form_request(
     return request
 
 
+def group_urls_by_station(urls, outfiles):
+    """
+    Groups urls and outfiles by station IP address.
+
+    Parameters:
+    ----------
+    urls : list
+        List of request URLs
+    outfiles : list
+        List of output file paths
+
+    Returns:
+    -------
+    dict
+        Dictionary with station IPs as keys and list of (url, outfile) tuples as values
+    """
+    requests_by_ip = {}
+    for url, outfile in zip(urls, outfiles):
+        sensor_ip = url.split("/")[2].split(":")[0]  # Extract IP from URL
+        if sensor_ip not in requests_by_ip:
+            requests_by_ip[sensor_ip] = []
+        requests_by_ip[sensor_ip].append((url, outfile))
+    return requests_by_ip
+
+
 def make_urls(
     ip_dict,
     request_params,
