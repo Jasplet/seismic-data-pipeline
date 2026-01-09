@@ -1,3 +1,4 @@
+import itertools
 from dataclasses import dataclass, field
 from datetime import timedelta
 from pathlib import Path
@@ -12,32 +13,49 @@ class RequestParams:
     These correspond to SEED parameters and time windows.
     Parameters:
     ----------
-    sensor_ip : str
-        IP address of sensor. Includes port no if any port forwarding needed
-    network : str
+    network : list[str]
         SEED Network code
-    station : str
+    station : list[str]
         SEED Station code
-    location : str
+    location : list[str]
         Location code
-    channel : str
+    channel : list[str]
         SEED Channel code
-    starttime : UTCDateTime
+    start : list[UTCDateTime]
         Start time of request
-    endtime : UTCDateTime
+    end : list[UTCDateTime]
         End time of request
     timeout : int
         Timeout for HTTP requests in seconds
     """
 
-    sensor_ip: str
-    network: str
-    station: str
-    location: str
-    channel: str
-    starttime: UTCDateTime
-    endtime: UTCDateTime
+    networks: list[str]
+    stations: list[str]
+    locations: list[str]
+    channels: list[str]
+    start: UTCDateTime
+    end: UTCDateTime
     timeout: int = field(default=10)  # seconds
+
+    def make_request_param_list(self):
+        """
+        Creates an iterator of all possible combinations of the request
+        parameters.
+
+        Returns:
+        -------
+        iterator of tuples
+            Each tuple is of the form
+            (network, station, location, channel, start, end)
+        """
+        return itertools.product(
+            self.networks,
+            self.stations,
+            self.locations,
+            self.channels,
+            self.start,
+            self.end,
+        )
 
 
 @dataclass
