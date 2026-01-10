@@ -33,11 +33,21 @@ class RequestParams:
     stations: list[str]
     locations: list[str]
     channels: list[str]
-    start: UTCDateTime
-    end: UTCDateTime
+    start: list[UTCDateTime]
+    end: list[UTCDateTime]
     timeout: int = field(default=10)  # seconds
 
-    def make_request_param_list(self):
+    def __post_init__(self):
+        if not isinstance(self.start, list):
+            if isinstance(self.start, UTCDateTime):
+                self.start = [self.start]
+            else:
+                raise TypeError("start must be a list of UTCDateTime objects")
+
+            self.end = [self.end]
+        self.add_request_param_list()
+
+    def add_request_param_list(self):
         """
         Creates an iterator of all possible combinations of the request
         parameters.
@@ -48,7 +58,7 @@ class RequestParams:
             Each tuple is of the form
             (network, station, location, channel, start, end)
         """
-        return itertools.product(
+        self.all_request_params = itertools.product(
             self.networks,
             self.stations,
             self.locations,
