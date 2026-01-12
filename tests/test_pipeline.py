@@ -84,7 +84,9 @@ class TestDataPipeline:
         outfile.unlink()
 
     @pytest.mark.asyncio
-    async def test_make_async_request_http_errors(self, mock_mseed_data, tmp_path):
+    async def test_make_async_request_http_errors(
+        self, mock_mseed_data, tmp_path, caplog
+    ):
         """Test handling of HTTP errors in _make_async_request."""
         pipeline = DataPipeline(self.station_ips, self.config)
 
@@ -92,8 +94,8 @@ class TestDataPipeline:
             # Mock response
             mock_response = AsyncMock()
             mock_response.read = AsyncMock(return_value=mock_mseed_data)
-            mock_response.status = 200  # HTTP OK
-            mock_response.raise_for_status = AsyncMock(
+            mock_response.status = err_code  # HTTP error code
+            mock_response.raise_for_status = MagicMock(
                 side_effect=aiohttp.ClientResponseError(
                     request_info=MagicMock(),
                     history=(),
@@ -107,19 +109,25 @@ class TestDataPipeline:
             cm = AsyncMock()  # context manager object
             cm.__aenter__.return_value = mock_response
             cm.__aexit__.return_value = False
+            mock_session.get.return_value = cm
 
             request_url = (
                 "http://giveme.data/data?"
                 + "channel=XX.TEST.00.HHZ&from=1704067200&to=1704067260"
             )
-            outfile = tmp_path / "TEST_async_err.mseed"
+            outfile = tmp_path / f"TEST_async_err_{err_code}.mseed"
             semaphore = asyncio.Semaphore(3)
 
-            with pytest.raises(aiohttp.ClientResponseError) as excinfo:
-                await pipeline._make_async_request(
-                    request_url, outfile, mock_session, semaphore
-                )
-                assert excinfo.value.status == err_code
+            await pipeline._make_async_request(
+                request_url, outfile, mock_session, semaphore
+            )
+            # Test errror were logged and no file was written
+            assert "Client error" in caplog.text
+            mock_response.raise_for_status.assert_called()
+            assert str(err_code) in caplog.text
+            assert request_url in caplog.text
+            assert mock_response.read.call_count == 0  # No data read on error
+
             # Ensure no file was created
             assert not outfile.exists()
 
