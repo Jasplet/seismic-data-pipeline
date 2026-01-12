@@ -220,5 +220,55 @@ class TestDataPipeline:
         # Ensure no file was created
         assert not outfile.exists()
 
+    @pytest.mark.asyncio
+    async def test_malformed_url_handling(self, tmp_path, caplog):
+        """Test handling of malformed URLs."""
+        pipeline = DataPipeline(self.station_ips, self.config)
 
-#
+        mock_session = MagicMock()
+        mock_session.get.side_effect = ValueError("Invalid URL")
+
+        request_url = "not-a-valid-url"
+        outfile = tmp_path / "TEST_malformed.mseed"
+        semaphore = asyncio.Semaphore(3)
+
+        await pipeline._make_async_request(
+            request_url, outfile, mock_session, semaphore
+        )
+
+        assert "Unexpected error" in caplog.text
+        assert not outfile.exists()
+
+    @pytest.mark.asyncio
+    async def test_file_write_permission_error(self, mock_mseed_data, tmp_path, caplog):
+        """Test handling of file write permission errors."""
+        pipeline = DataPipeline(self.station_ips, self.config)
+
+        mock_response = MagicMock()
+        mock_response.read = AsyncMock(return_value=mock_mseed_data)
+        mock_response.status = 200
+        mock_response.raise_for_status = MagicMock()
+
+        mock_session = MagicMock()
+        cm = AsyncMock()
+        cm.__aenter__.return_value = mock_response
+        cm.__aexit__.return_value = False
+        mock_session.get.return_value = cm
+
+        # Create a read-only directory
+        readonly_dir = tmp_path / "readonly"
+        readonly_dir.mkdir()
+        readonly_dir.chmod(0o444)  # Read-only
+
+        request_url = "http://giveme.data/data?channel=XX.TEST.00.HHZ&from=1704067200&to=1704067260"
+        outfile = readonly_dir / "TEST.mseed"
+        semaphore = asyncio.Semaphore(3)
+
+        await pipeline._make_async_request(
+            request_url, outfile, mock_session, semaphore
+        )
+
+        assert "Unexpected error" in caplog.text or "Permission" in caplog.text
+
+        # Cleanup
+        readonly_dir.chmod(0o755)
