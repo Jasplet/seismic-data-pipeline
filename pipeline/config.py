@@ -38,16 +38,41 @@ class RequestParams:
     timeout: int = field(default=10)  # seconds
 
     def __post_init__(self):
+        """
+        Do some type checking after initialisation.
+
+        :param self: Description
+        """
+        # Convert all parameters to lists if they aren't already
+        if not isinstance(self.networks, list):
+            self.networks = [self.networks]
+
+        if not isinstance(self.stations, list):
+            self.stations = [self.stations]
+
+        if not isinstance(self.locations, list):
+            self.locations = [self.locations]
+
+        if not isinstance(self.channels, list):
+            self.channels = [self.channels]
+
         if not isinstance(self.start, list):
             if isinstance(self.start, UTCDateTime):
                 self.start = [self.start]
             else:
-                raise TypeError("start must be a list of UTCDateTime objects")
+                raise TypeError(
+                    f"start must be a UTCDateTime object or list of UTCDateTime objects, got {type(self.start)}"
+                )
+        if not isinstance(self.end, list):
+            if isinstance(self.end, UTCDateTime):
+                self.end = [self.end]
+            else:
+                raise TypeError(
+                    f"end must be a UTCDateTime object or list of UTCDateTime objects, got {type(self.end)}"
+                )
+        self.add_request_param_combos()
 
-            self.end = [self.end]
-        self.add_request_param_list()
-
-    def add_request_param_list(self):
+    def add_request_param_combos(self):
         """
         Creates an iterator of all possible combinations of the request
         parameters.
