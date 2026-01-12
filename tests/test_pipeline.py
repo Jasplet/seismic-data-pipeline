@@ -84,6 +84,41 @@ class TestDataPipeline:
         outfile.unlink()
 
     @pytest.mark.asyncio
+    async def test_make_async_request_empty_response(self, tmp_path, caplog):
+        """Test handling of empty response in _make_async_request."""
+        pipeline = DataPipeline(self.station_ips, self.config)
+
+        # Mock response
+        mock_response = AsyncMock()
+        mock_response.read = AsyncMock(return_value=b"")  # Empty response
+        mock_response.status = 200  # HTTP OK
+        mock_response.raise_for_status = MagicMock()
+
+        # Make session.get return an async context manager yielding mock_response
+        mock_session = MagicMock()
+        cm = AsyncMock()  # context manager object
+        cm.__aenter__.return_value = mock_response
+        cm.__aexit__.return_value = False
+        mock_session.get.return_value = cm
+
+        request_url = (
+            "http://giveme.data/data?"
+            + "channel=XX.TEST.00.HHZ&from=1704067200&to=1704067260"
+        )
+        outfile = tmp_path / "TEST_async_empty.mseed"
+        semaphore = asyncio.Semaphore(3)
+
+        await pipeline._make_async_request(
+            request_url, outfile, mock_session, semaphore
+        )
+        # Test fucntions were called and no file was written
+        mock_session.get.assert_called_with(request_url)
+        mock_response.raise_for_status.assert_called()
+        mock_response.read.assert_called_once()
+        assert "Request is empty!" in caplog.text
+        assert not outfile.exists()
+
+    @pytest.mark.asyncio
     async def test_make_async_request_http_errors(
         self, mock_mseed_data, tmp_path, caplog
     ):
@@ -130,6 +165,28 @@ class TestDataPipeline:
 
             # Ensure no file was created
             assert not outfile.exists()
+
+    @pytest.mark.asyncio
+    async def test_make_async_request_network_error(self, tmp_path, caplog):
+        """Test handling of network errors (connection failures)."""
+        pipeline = DataPipeline(self.station_ips, self.config)
+
+        # Mock connection error
+        mock_session = MagicMock()
+        mock_session.get.side_effect = aiohttp.ClientConnectionError(
+            "Connection failed"
+        )
+
+        request_url = "http://giveme.data/data?channel=XX.TEST.00.HHZ&from=1704067200&to=1704067260"
+        outfile = tmp_path / "TEST_network.mseed"
+        semaphore = asyncio.Semaphore(3)
+
+        await pipeline._make_async_request(
+            request_url, outfile, mock_session, semaphore
+        )
+
+        assert "Connection error" in caplog.text
+        assert not outfile.exists()
 
     @pytest.mark.asyncio
     async def test_make_async_unexpected_errors(

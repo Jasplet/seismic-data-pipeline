@@ -112,6 +112,10 @@ class DataPipeline:
             except aiohttp.ClientResponseError as e:
                 self.logger.error(f"Client error for {request_url}: {e}")
                 # Additional handling could go here, like retry logic
+
+            except aiohttp.ClientConnectionError as e:
+                self.logger.error(f"Connection error for {request_url}: {e}")
+
             except Exception as e:
                 self.logger.error(f"Unexpected error for {request_url}: {e}")
             return
