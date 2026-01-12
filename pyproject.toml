@@ -17,4 +17,5 @@ dependencies = [
 dev = [
     "ipython>=8.38.0",
     "pytest>=9.0.2",
+    "ruff>=0.14.11",
 ]
