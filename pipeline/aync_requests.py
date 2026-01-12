@@ -9,22 +9,20 @@ import obspy
 from pipeline.config import PipelineConfig, RequestParams
 from pipeline.utils import group_urls_by_station, make_urls
 
-# Core asynchonrous functions. Using these is
-# better (i.e., faster) that making synchronous
-# requests.
-
 
 class DataPipeline:
     def __init__(self, station_ips, config: PipelineConfig):
         self.station_ips = station_ips
         self.config = config
         self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
 
     async def get_data(
         self,
         Params: RequestParams,
     ):
         # Make all urls to query.
+        self.logger.info("Forming request URLs")
         urls, outfiles = self._make_urls(Params)
 
         self.logger.info(f"There are {len(urls)} requests to make")
@@ -40,8 +38,10 @@ class DataPipeline:
             # Limit the number of simultaneous requests
             # Adjust based on seismometer capacity
             for sensor_ip, reqs in requests_by_ip.items():
+                self.logger.info(f"Making requests to sensor at {sensor_ip}")
                 semaphore = semaphores[sensor_ip]
                 for request_url, outfile in reqs:
+                    self.logger.info(f"Calling _make_async_request for {request_url}")
                     task = asyncio.create_task(
                         self._make_async_request(
                             request_url, outfile, async_client_session, semaphore
@@ -81,7 +81,6 @@ class DataPipeline:
                     )
                     ed = obspy.UTCDateTime(float(request_url.split("=")[-1]))
                     self.logger.info(f"Requesting {st} to {ed}")
-                    self.logger.info(request_url)
                     # Raise HTTP error for 4xx/5xx errors
                     resp.raise_for_status()
 
