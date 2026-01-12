@@ -6,6 +6,8 @@ import log
 import obspy
 import requests
 
+from pipeline.utils import form_request, iterate_chunks
+
 # core synchronous functions
 # These functions are deprecated but i will
 # leave them here for users that may want to use them
