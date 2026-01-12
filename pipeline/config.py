@@ -13,13 +13,13 @@ class RequestParams:
     These correspond to SEED parameters and time windows.
     Parameters:
     ----------
-    network : list[str]
+    networks : list[str]
         SEED Network code
-    station : list[str]
+    stations : list[str]
         SEED Station code
-    location : list[str]
+    locations : list[str]
         Location code
-    channel : list[str]
+    channels : list[str]
         SEED Channel code
     start : list[UTCDateTime]
         Start time of request
@@ -90,6 +90,49 @@ class RequestParams:
             self.channels,
             self.start,
             self.end,
+        )
+
+    @classmethod
+    def from_user_inputs(cls, **kwargs):
+        """
+        Class method to create RequestParams object from user inputs.
+
+        Parameters:
+        ----------
+        kwargs : dict
+            Dictionary of user inputs with expected keys:
+            networks, stations, locations, channels, start, end
+        """
+        networks = kwargs.get("networks", kwargs.get("network"))
+        stations = kwargs.get("stations", kwargs.get("station"))
+        locations = kwargs.get("locations", kwargs.get("location"))
+        channels = kwargs.get("channels", kwargs.get("channel"))
+        start = kwargs.get("start")
+        end = kwargs.get("end")
+
+        missing_params = [
+            name
+            for name, value in {
+                "network(s)": networks,
+                "station(s)": stations,
+                "location(s)": locations,
+                "channel(s)": channels,
+                "start": start,
+                "end": end,
+            }.items()
+            if value is None
+        ]
+        if missing_params:
+            raise ValueError(
+                f"Missing required parameters: {', '.join(missing_params)}"
+            )
+        return cls(
+            networks=networks,  # type: ignore
+            stations=stations,  # type: ignore
+            locations=locations,  # type: ignore
+            channels=channels,  # type: ignore
+            start=start,  # type: ignore
+            end=end,  # type: ignore
         )
 
 
