@@ -104,7 +104,7 @@ def group_urls_by_station(urls, outfiles):
 def make_urls(
     ip_dict,
     request_params,
-    data_dir="",
+    data_dir=Path.cwd(),
     chunksize=datetime.timedelta(hours=1),
     buffer=datetime.timedelta(seconds=150),
 ):
@@ -121,14 +121,12 @@ def make_urls(
         Includes port number if any port forwarding needed
     request_params : list
         List of tuples (net, stat, loc, channel, start, end)
-    data_dir : str,
+    data_dir :
         Directory to write data to
     chunksize : datetime.timedelta
         Size of chunked request
     """
-    #   If data dir is empty then use current directory
-    if data_dir == "":
-        data_dir = Path.cwd()
+
     urls = []
     outfiles = []
 
