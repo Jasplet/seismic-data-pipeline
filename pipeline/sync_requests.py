@@ -1,6 +1,8 @@
 import datetime
+import glob
 from pathlib import Path
 
+import log
 import obspy
 import requests
 
