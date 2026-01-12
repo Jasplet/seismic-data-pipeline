@@ -20,7 +20,6 @@ class DataPipeline:
         self.config = config
         self.logger = logging.getLogger(__name__)
 
-
     async def get_data(
         self,
         Params: RequestParams,
@@ -32,11 +31,11 @@ class DataPipeline:
         requests_by_ip = self._group_by_stations(urls, outfiles)
         # Use semaphores to limit simultaneous requests per sensor
         semaphores = {
-            sensor_ip: asyncio.Semaphore(self.confign_async_requests)
+            sensor_ip: asyncio.Semaphore(self.config.n_async_requests)
             for sensor_ip in requests_by_ip
         }
 
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession() as async_client_session:
             tasks = []
             # Limit the number of simultaneous requests
             # Adjust based on seismometer capacity
@@ -44,12 +43,14 @@ class DataPipeline:
                 semaphore = semaphores[sensor_ip]
                 for request_url, outfile in reqs:
                     task = asyncio.create_task(
-                        make_async_request(session, semaphore, request_url, outfile)
+                        self._make_async_request(
+                            request_url, outfile, async_client_session, semaphore
+                        )
                     )
                     tasks.append(task)
             await asyncio.gather(*tasks)
 
-    async def make_async_request(self, session, semaphore, request_url, outfile):
+    async def _make_async_request(self, request_url, outfile, session, semaphore):
         """
         Function to actually make the HTTP GET request from the Certimus
 
@@ -62,6 +63,12 @@ class DataPipeline:
         request_url : str
             The formed request url in the form:
             http://{sensor_ip}/data?channel={net_code}.{stat_code}.{loc_code}.{channel}&from={startUNIX}&to={endUNIX}
+        outfile : str
+            Filename to write the miniSEED data to, generated in make_urls
+        session : aiohttp.ClientSession
+            The aiohttp client session to use for making requests
+        semaphore : asyncio.Semaphore
+            Semaphore to limit simultaneous requests per sensor
         """
 
         async with semaphore:
