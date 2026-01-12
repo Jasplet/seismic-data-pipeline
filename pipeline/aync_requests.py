@@ -105,9 +105,22 @@ class DataPipeline:
             return
 
     def _group_by_stations(self, urls, outfiles):
+        """
+        Groups urls and outfiles by station IP address, using utility function.
+
+        :param self: Description
+        :param urls: Description
+        :param outfiles: Description
+        """
         return group_urls_by_station(urls, outfiles)
 
     def _make_urls(self, request_params):
+        """
+        Calls utility function to make urls for chunked requests.
+
+        :param self: Description
+        :param request_params: Description
+        """
         return make_urls(
             self.station_ips,
             request_params,
