@@ -131,5 +131,37 @@ class TestDataPipeline:
             # Ensure no file was created
             assert not outfile.exists()
 
+    @pytest.mark.asyncio
+    async def test_make_async_unexpected_errors(
+        self, mock_mseed_data, tmp_path, caplog
+    ):
+        """Test handling of HTTP errors in _make_async_request."""
+        pipeline = DataPipeline(self.station_ips, self.config)
+
+        mock_response = AsyncMock()
+        mock_response.read = AsyncMock()
+
+        # Make session.get return an async context manager yielding mock_response
+        mock_session = MagicMock()
+        cm = AsyncMock()  # context manager object
+        cm.__aenter__.return_value = mock_response
+        cm.__aexit__.return_value = False
+        mock_session.get.return_value = Exception("Unexpected error")
+
+        request_url = (
+            "http://giveme.data/data?"
+            + "channel=XX.TEST.00.HHZ&from=1704067200&to=1704067260"
+        )
+        outfile = tmp_path / "TEST_async_unexpected_err.mseed"
+        semaphore = asyncio.Semaphore(3)
+
+        await pipeline._make_async_request(
+            request_url, outfile, mock_session, semaphore
+        )
+        # Test errror were logged and no file was written
+        assert "Unexpected error" in caplog.text
+        # Ensure no file was created
+        assert not outfile.exists()
+
 
 #
