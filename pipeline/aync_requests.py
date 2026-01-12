@@ -17,14 +17,27 @@ class DataPipeline:
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
 
-    async def get_data(
+    def get_data(self, SEED_params: RequestParams):
+        """
+        Main function to get data asynchronously from multiple Certimus
+        instruments.
+
+        Parameters:
+        ----------
+        Params : RequestParams
+            Data class holding parameters for forming Certimus HTTP API requests.
+        """
+
+        self.logger.info("Starting asynchronous data retrieval")
+        asyncio.run(self._get_data(SEED_params))
+
+    async def _get_data(
         self,
-        Params: RequestParams,
+        SEED_params: RequestParams,
     ):
         # Make all urls to query.
         self.logger.info("Forming request URLs")
-        urls, outfiles = self._make_urls(Params)
-
+        urls, outfiles = self._make_urls(SEED_params)
         self.logger.info(f"There are {len(urls)} requests to make")
         requests_by_ip = self._group_by_stations(urls, outfiles)
         # Use semaphores to limit simultaneous requests per sensor
