@@ -11,7 +11,19 @@ from pipeline.utils import group_urls_by_station, make_urls
 
 
 class DataPipeline:
-    def __init__(self, station_ips, config: PipelineConfig):
+    def __init__(self, station_ips, config: PipelineConfig = PipelineConfig()):
+        """
+        Initializes DataPipeline with station IPs and configuration.§
+
+        Parameters:
+        ----------
+        station_ips : dict
+            Dictionary of station codes and their corresponding IP addresses.
+        config : PipelineConfig
+            Configuration parameters for the data pipeline.
+            If not provided, defaults to PipelineConfig().
+        """
+
         self.station_ips = station_ips
         self.config = config
         self.logger = logging.getLogger(__name__)
