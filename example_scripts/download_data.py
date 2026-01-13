@@ -45,11 +45,24 @@ if __name__ == "__main__":
     log.info("Starting download.")
 
     # ========== Start of variable to set ==========
-    # directory to write data to
-    # change to /your/path/to/datadir
-    data_dir = Path("/path/to/datadir")
-    # Provide IP addresses. Here I have stored them in a JSON file to keep
-    # them off GitHub.
+
+    request_config = PipelineConfig(
+        data_dir=Path(
+            "/path/to/datadir"
+        ),  # directory to write data to, change to /your/path/to/datadir
+        chunksize_hours=datetime.timedelta(hours=1),  # length of data to request
+        buffer_seconds=datetime.timedelta(
+            seconds=150
+        ),  # buffer to add to the start/end of each request
+    )
+
+    # Provide IP addresses.
+    # Here I have stored them in a JSON file to keep them off GitHub.
+    # JSON should be in the format:
+    # {
+    #   "STA1": "192.168.1.1",
+    #   "STA2": "192.168.1.2"
+    # }
     with open("/path/to/instrument_ips.json", "r") as w:
         ips_dict = json.load(w)
     # with open('/home/joseph/nymar_zerotier_ips.json', 'r') as w:
@@ -58,20 +71,13 @@ if __name__ == "__main__":
     starttime = UTCDateTime(2024, 9, 30, 0, 0, 0)
     endtime = UTCDateTime(2024, 10, 1, 0, 0, 0)
     # SEED parameters to request
+    # Check the request parameters match the settings on your Certimus/Minimus
+    # These can be seen on the status/setup page of the instrument
     Params_for_request = RequestParams(
         networks=["OX"],  # Network code
-        stations=[
-            "NYM1",
-            "NYM2",
-            "NYM3",
-            "NYM4",
-            "NYM5",
-            "NYM6",
-            "NYM7",
-            "NYM8",
-        ],  # Station codes
+        stations=["STA1", "STA2"],  # Station codes
         locations=["00"],  # Location code
-        channels=["HHZ", "HHN", "HHE"],  # Channel code
+        channels=["HHZ", "HHN", "HHE"],  # Channel codes
         start=starttime,
         end=endtime,
     )
@@ -85,12 +91,6 @@ if __name__ == "__main__":
     # check Certimus/Minimus status page (https://{your-ip-here})
 
     # ========== End of variables to set ==========
-
-    request_config = PipelineConfig(
-        data_dir=data_dir,
-        chunksize_hours=datetime.timedelta(hours=1),
-        buffer_seconds=datetime.timedelta(seconds=150),
-    )
 
     data_fetcher = DataPipeline(station_ips=ips_dict, config=request_config)
     data_fetcher.get_data(Params_for_request)
