@@ -70,7 +70,7 @@ class TestPipelineConfig:
 
         assert config.data_dir == data_dir
         assert config.chunksize_hours == timedelta(hours=1)
-        assert config.buffer_seconds == timedelta(hours=1)
+        assert config.buffer_seconds == timedelta(seconds=150)
 
     def test_pipeline_catches_too_many_async_requests(self):
         with pytest.raises(ValueError) as excinfo:
