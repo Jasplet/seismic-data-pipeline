@@ -26,10 +26,12 @@ from pathlib import Path
 
 from obspy import UTCDateTime
 
-from pipeline.utils import get_data
+from pipeline.core import DataPipeline
+from pipeline.config import RequestParams, PipelineConfig
 
 log = logging.getLogger(__name__)
-logdir = Path("/home/joseph/logs")
+## ADD YOUR LOG DIRECTORY HERE
+logdir = Path("/path/to/custom/logdir")
 # test is logdir exists, if not then set to cwd
 if logdir.exists():
     print(f"Logs written to {logdir}")
@@ -39,54 +41,60 @@ else:
 
 if __name__ == "__main__":
     script_start = timeit.default_timer()
-    logging.basicConfig(filename=f"{logdir}/nymar_backfill.log", level=logging.INFO)
+    now = datetime.datetime.now()
+    logname = f"data_download_{now.strftime('%Y%m%dT%H%M%S')}.log"
+    logging.basicConfig(filename=f"{logdir}/{logname}", level=logging.INFO)
     log.info(f"Starting download. Time is {datetime.datetime.now()}")
 
     # ========== Start of variable to set ==========
     # directory to write data to
     # change to /your/path/to/datadir
-    data_dir = Path("/Users/eart0593/Projects/Agile/NYMAR/" + "data_dump/")
+    data_dir = Path("/path/to/datadir")
     # Provide IP addresses. Here I have stored them in a JSON file to keep
     # them off GitHub.
-    with open("/Users/eart0593/Projects/Agile/NYMAR/nymar_zerotier_ips.json", "r") as w:
+    with open("/path/to/instrument_ips.json", "r") as w:
         ips_dict = json.load(w)
     # with open('/home/joseph/nymar_zerotier_ips.json', 'r') as w:
     #     ips_dict = json.load(w)
 
-    with open(
-        "/Users/eart0593/Projects/Agile/NYMAR/nymar_request_params.json", "r"
-    ) as param_file:
-        params = json.load(param_file)
-
-    # Seedlink Parameters
-    networks = params["networks"]
-    stations = params["stations"]
-    stations = ["NYM1"]
-    channels = params["channels"]
-    locations = params["locations"]
+    starttime = UTCDateTime(2024, 9, 30, 0, 0, 0)
+    endtime = UTCDateTime(2024, 10, 1, 0, 0, 0)
+    # SEED parameters to request
+    Params_for_request = RequestParams(
+        networks=["OX"],  # Network code
+        stations=[
+            "NYM1",
+            "NYM2",
+            "NYM3",
+            "NYM4",
+            "NYM5",
+            "NYM6",
+            "NYM7",
+            "NYM8",
+        ],  # Station codes
+        locations=["00"],  # Location code
+        channels=["HHZ", "HHN", "HHE"],  # Channel code
+        start=starttime,
+        end=endtime,
+    )
 
     # Time span to get data for. Edit these start/end objects
     # to customise the timespan to get data for.
-    start = [UTCDateTime(2024, 9, 30, 0, 0, 0)]
-    end = [UTCDateTime(2024, 10, 1, 0, 0, 0)]
-    log.info(f"Query start time: {start}")
-    log.info(f"Query end time: {end}")
+    log.info(f"Query start time: {starttime.strftime('%Y-%m-%dT%H:%M:%S')}")
+    log.info(f"Query end time: {endtime.strftime('%Y-%m-%dT%H:%M:%S')}")
     # SET TO CORRECT CODE. should be '00' for veloctity data
     # will be somehing different for voltage,
     # check Certimus/Minimus status page (https://{your-ip-here})
-    locations = ["00"]
-    # flatten seedlink parameters into an iterator of
-    # tuples of all possible combinations.
 
-    # params should be form (net, stat, loc, channel, start, end)
-    # here start/end are the start and end time of all data to request
     # ========== End of variables to set ==========
 
-    request_params = itertools.product(
-        networks, stations, locations, channels, start, end
-    )
-    # call get_data
-    asyncio.run(get_data(request_params, station_ips=ips_dict, data_dir=data_dir))
+    request_config = PipelineConfig(
+        data_dir=data_dir,
+        chunksize_hours= datetime.timedelta(hours=1),
+        buffer_seconds=datetime.timedelta(seconds=150),
+
+
+    data_fetcher = DataPipeline(station_ips=ips_dics, config=)
 
     script_end = timeit.default_timer()
     runtime = script_end - script_start

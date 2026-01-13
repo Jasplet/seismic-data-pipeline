@@ -154,7 +154,7 @@ class PipelineConfig:
 
     data_dir: Path = field(default=Path.cwd())
     chunksize_hours: timedelta = field(default=timedelta(hours=1))
-    buffer_seconds: timedelta = field(default=timedelta(hours=1))
+    buffer_seconds: timedelta = field(default=timedelta(seconds=150))
     # Max number of async requests is hard limited to three
     n_async_requests: int = field(default=3)
 
