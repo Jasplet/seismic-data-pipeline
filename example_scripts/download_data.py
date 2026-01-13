@@ -44,7 +44,19 @@ if __name__ == "__main__":
     logging.basicConfig(filename=f"{logdir}/{logname}", level=logging.INFO)
     log.info("Starting download.")
 
-    # ========== Start of variable to set ==========
+    # ========== Start of variables to set ==========
+
+    # Create pipeline configuration object
+    # The config is quite simple. The key variable is the data_dir
+    # which sets where data will be written to.
+    # You can also set the chunksize_hours variable to change
+    # the length of each data request.
+    # The buffer_seconds variable adds a small buffer to the start
+    # and end of each request to help ensure no data is missed
+    # due to timing issues.
+    # If a config object is not provided to the DataPipeline object
+    # then a default config is used using the current working directory as
+    # data_dir and the same chunk and buffer settings as shown here.
 
     request_config = PipelineConfig(
         data_dir=Path(
@@ -56,7 +68,7 @@ if __name__ == "__main__":
         ),  # buffer to add to the start/end of each request
     )
 
-    # Provide IP addresses.
+    # Load IP addresses.
     # Here I have stored them in a JSON file to keep them off GitHub.
     # JSON should be in the format:
     # {
@@ -65,34 +77,33 @@ if __name__ == "__main__":
     # }
     with open("/path/to/instrument_ips.json", "r") as w:
         ips_dict = json.load(w)
-    # with open('/home/joseph/nymar_zerotier_ips.json', 'r') as w:
-    #     ips_dict = json.load(w)
+    # Alternatively you can hardcode the IPs here as a dictionary
+    # ips_dict = {
+    #     "STA1": "192.168.1.1",
+    #     "STA2": "192.168.1.2"
+    # }
 
-    starttime = UTCDateTime(2024, 9, 30, 0, 0, 0)
-    endtime = UTCDateTime(2024, 10, 1, 0, 0, 0)
+    # Initialize DataPipeline object
+    data_fetcher = DataPipeline(station_ips=ips_dict, config=request_config)
+
     # SEED parameters to request
     # Check the request parameters match the settings on your Certimus/Minimus
-    # These can be seen on the status/setup page of the instrument
+    # These can be seen on the Certimus/Minimus status page (https://{your-ip-here})
     Params_for_request = RequestParams(
         networks=["OX"],  # Network code
         stations=["STA1", "STA2"],  # Station codes
         locations=["00"],  # Location code
         channels=["HHZ", "HHN", "HHE"],  # Channel codes
-        start=starttime,
-        end=endtime,
+        # Time span to get data for. Edit these start/end objects
+        # to customise the timespan to get data for.
+        start=UTCDateTime(2026, 1, 10, 0, 0, 0),
+        end=UTCDateTime(2026, 1, 11, 0, 0, 0),
     )
 
-    # Time span to get data for. Edit these start/end objects
-    # to customise the timespan to get data for.
-    log.info(f"Query start time: {starttime.strftime('%Y-%m-%dT%H:%M:%S')}")
-    log.info(f"Query end time: {endtime.strftime('%Y-%m-%dT%H:%M:%S')}")
-    # SET TO CORRECT CODE. should be '00' for veloctity data
-    # will be somehing different for voltage,
-    # check Certimus/Minimus status page (https://{your-ip-here})
+    # =========== End of variables to set ===========
 
-    # ========== End of variables to set ==========
+    # Get the data
 
-    data_fetcher = DataPipeline(station_ips=ips_dict, config=request_config)
     data_fetcher.get_data(Params_for_request)
     log.info("Finished download.")
     script_end = timeit.default_timer()
