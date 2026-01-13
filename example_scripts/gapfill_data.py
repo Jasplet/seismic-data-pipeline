@@ -24,11 +24,11 @@ import asyncio
 import datetime
 import json
 import logging
-from pathlib import Path
 import pickle
 import timeit
+from pathlib import Path
 
-from data_pipeline import get_data
+from pipeline.utils import get_data
 
 log = logging.getLogger(__name__)
 logdir = Path("/home/joseph/logs")
@@ -87,5 +87,5 @@ if __name__ == "__main__":
 
     log.info(
         f"Runtime is {runtime:4.2f} seconds, "
-        + f"or {runtime/60:4.2f} minutes, or {runtime/3600:4.2f} hours"
+        + f"or {runtime / 60:4.2f} minutes, or {runtime / 3600:4.2f} hours"
     )
