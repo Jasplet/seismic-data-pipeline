@@ -16,9 +16,7 @@
 # Some editing of this script could make it request minute chunks
 # (for a whole day) or make hourly / minutely requests for data
 
-import asyncio
 import datetime
-import itertools
 import json
 import logging
 import timeit
@@ -26,8 +24,8 @@ from pathlib import Path
 
 from obspy import UTCDateTime
 
+from pipeline.config import PipelineConfig, RequestParams
 from pipeline.core import DataPipeline
-from pipeline.config import RequestParams, PipelineConfig
 
 log = logging.getLogger(__name__)
 ## ADD YOUR LOG DIRECTORY HERE
@@ -44,7 +42,7 @@ if __name__ == "__main__":
     now = datetime.datetime.now()
     logname = f"data_download_{now.strftime('%Y%m%dT%H%M%S')}.log"
     logging.basicConfig(filename=f"{logdir}/{logname}", level=logging.INFO)
-    log.info(f"Starting download. Time is {datetime.datetime.now()}")
+    log.info("Starting download.")
 
     # ========== Start of variable to set ==========
     # directory to write data to
@@ -90,12 +88,13 @@ if __name__ == "__main__":
 
     request_config = PipelineConfig(
         data_dir=data_dir,
-        chunksize_hours= datetime.timedelta(hours=1),
+        chunksize_hours=datetime.timedelta(hours=1),
         buffer_seconds=datetime.timedelta(seconds=150),
+    )
 
-
-    data_fetcher = DataPipeline(station_ips=ips_dics, config=)
-
+    data_fetcher = DataPipeline(station_ips=ips_dict, config=request_config)
+    data_fetcher.get_data(Params_for_request)
+    log.info("Finished download.")
     script_end = timeit.default_timer()
     runtime = script_end - script_start
 
