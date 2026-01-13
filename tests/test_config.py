@@ -1,3 +1,6 @@
+# Create a temporary pickle file with bulk requests
+import pickle
+import tempfile
 from datetime import timedelta
 from pathlib import Path
 
@@ -14,18 +17,28 @@ class TestRequestParams:
             "stations": ["STA1", "STA2"],
             "locations": ["00", "10"],
             "channels": ["BHZ", "EHN"],
-            "start": [obspy.UTCDateTime("2024-01-01T00:00:00")],
-            "end": [obspy.UTCDateTime("2024-01-02T00:00:00")],
+            "start": obspy.UTCDateTime("2024-01-01T00:00:00"),
+            "end": obspy.UTCDateTime("2024-01-02T00:00:00"),
         }
         config = RequestParams.from_user_inputs(**user_inputs)
 
-        assert config.networks == ["XX", "YY"]
-        assert config.stations == ["STA1", "STA2"]
-        assert config.locations == ["00", "10"]
-        assert config.channels == ["BHZ", "EHN"]
-        assert config.start == [obspy.UTCDateTime("2024-01-01T00:00:00")]
-        assert config.end == [obspy.UTCDateTime("2024-01-02T00:00:00")]
-        assert hasattr(config, "all_request_params")
+        assert config.requests_to_make[0] == (
+            "XX",
+            "STA1",
+            "00",
+            "BHZ",
+            obspy.UTCDateTime("2024-01-01T00:00:00"),
+            obspy.UTCDateTime("2024-01-02T00:00:00"),
+        )
+        assert config.requests_to_make[-1] == (
+            "YY",
+            "STA2",
+            "10",
+            "EHN",
+            obspy.UTCDateTime("2024-01-01T00:00:00"),
+            obspy.UTCDateTime("2024-01-02T00:00:00"),
+        )
+        assert len(config) == 16  # 2 networks * 2 stations * 2 locations * 2 channels
 
     def test_from_user_inputs_missing_params(self):
         user_inputs = {
@@ -49,18 +62,116 @@ class TestRequestParams:
             "station": ["STA1"],
             "location": ["00"],
             "channel": ["BHZ"],
-            "start": [obspy.UTCDateTime("2024-01-01T00:00:00")],
-            "end": [obspy.UTCDateTime("2024-01-02T00:00:00")],
+            "start": obspy.UTCDateTime("2024-01-01T00:00:00"),
+            "end": obspy.UTCDateTime("2024-01-02T00:00:00"),
         }
         config = RequestParams.from_user_inputs(**user_inputs)
 
-        assert config.networks == ["XX"]
-        assert config.stations == ["STA1"]
-        assert config.locations == ["00"]
-        assert config.channels == ["BHZ"]
-        assert config.start == [obspy.UTCDateTime("2024-01-01T00:00:00")]
-        assert config.end == [obspy.UTCDateTime("2024-01-02T00:00:00")]
-        assert hasattr(config, "all_request_params")
+        assert config.requests_to_make[0] == (
+            "XX",
+            "STA1",
+            "00",
+            "BHZ",
+            obspy.UTCDateTime("2024-01-01T00:00:00"),
+            obspy.UTCDateTime("2024-01-02T00:00:00"),
+        )
+        assert len(config) == 1
+
+    def test_from_time_windows(self):
+        params = {
+            "networks": ["XX", "YY"],
+            "stations": ["STA1"],
+            "locations": ["00"],
+            "channels": ["BHZ"],
+            "time_windows": [
+                (
+                    obspy.UTCDateTime("2024-01-01T00:00:00"),
+                    obspy.UTCDateTime("2024-01-01T12:00:00"),
+                ),
+                (
+                    obspy.UTCDateTime("2024-03-02T00:00:00"),
+                    obspy.UTCDateTime("2024-03-02T12:00:00"),
+                ),
+            ],
+        }
+        config = RequestParams.from_time_windows(**params)
+
+        assert config.requests_to_make[0] == (
+            "XX",
+            "STA1",
+            "00",
+            "BHZ",
+            obspy.UTCDateTime("2024-01-01T00:00:00"),
+            obspy.UTCDateTime("2024-01-01T12:00:00"),
+        )
+        assert config.requests_to_make[-1] == (
+            "YY",
+            "STA1",
+            "00",
+            "BHZ",
+            obspy.UTCDateTime("2024-03-02T00:00:00"),
+            obspy.UTCDateTime("2024-03-02T12:00:00"),
+        )
+        assert len(config) == 4  # 2 networks * 1 station * 1 location * 1 channel
+
+    def test_bulk_requests_empty(self):
+        with pytest.raises(ValueError) as excinfo:
+            config = RequestParams.from_bulk_inputs(bulk_requests=[])
+
+    def test_bulk_requests_valid_tuple_list(self):
+        bulk_requests = [
+            (
+                "XX",
+                "STA1",
+                "00",
+                "BHZ",
+                obspy.UTCDateTime("2024-01-01"),
+                obspy.UTCDateTime("2024-01-02"),
+            ),
+            (
+                "YY",
+                "STA2",
+                "10",
+                "EHN",
+                obspy.UTCDateTime("2024-02-01"),
+                obspy.UTCDateTime("2024-02-02"),
+            ),
+        ]
+        config = RequestParams.from_bulk_inputs(bulk_requests=bulk_requests)
+
+        assert config.requests_to_make[0] == bulk_requests[0]
+        assert config.requests_to_make[1] == bulk_requests[1]
+        assert len(config) == 2
+
+    def test_bulk_requests_valid_pickle(self):
+        bulk_requests = [
+            (
+                "XX",
+                "STA1",
+                "00",
+                "BHZ",
+                obspy.UTCDateTime("2024-01-01"),
+                obspy.UTCDateTime("2024-01-02"),
+            ),
+            (
+                "YY",
+                "STA2",
+                "10",
+                "EHN",
+                obspy.UTCDateTime("2024-02-01"),
+                obspy.UTCDateTime("2024-02-02"),
+            ),
+        ]
+
+        with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
+            pickle.dump(bulk_requests, tmpfile)
+            tmpfile_path = tmpfile.name
+
+        config = RequestParams.from_bulk_inputs(bulk_requests=tmpfile_path)
+
+        assert config.requests_to_make[0] == bulk_requests[0]
+        assert config.requests_to_make[1] == bulk_requests[1]
+        assert len(config) == 2
 
 
 class TestPipelineConfig:
