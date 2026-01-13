@@ -9,8 +9,8 @@ import pytest
 from obspy import Stream, Trace, UTCDateTime
 from obspy.core.trace import Stats
 
-from pipeline.aync_requests import DataPipeline
 from pipeline.config import PipelineConfig
+from pipeline.core import DataPipeline
 
 
 class TestDataPipeline:
