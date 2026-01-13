@@ -6,7 +6,6 @@ from pathlib import Path
 from obspy import UTCDateTime
 
 
-@dataclass
 class RequestParams:
     """
     Data class to hold parameters for forming Certimus HTTP API requests.
@@ -29,20 +28,24 @@ class RequestParams:
         Timeout for HTTP requests in seconds
     """
 
-    networks: list[str] | str
-    stations: list[str] | str
-    locations: list[str] | str
-    channels: list[str] | str
-    start: list[UTCDateTime] | UTCDateTime
-    end: list[UTCDateTime] | UTCDateTime
-    timeout: int = field(default=10)  # seconds
+    def __init__(
+        self,
+        networks: list[str] | str,
+        stations: list[str] | str,
+        locations: list[str] | str,
+        channels: list[str] | str,
+        start: list[UTCDateTime] | UTCDateTime,
+        end: list[UTCDateTime] | UTCDateTime,
+        timeout: int = 10,
+    ):  # seconds
+        self.networks = networks
+        self.stations = stations
+        self.locations = locations
+        self.channels = channels
+        self.start = start
+        self.end = end
+        self.timeout = timeout
 
-    def __post_init__(self):
-        """
-        Do some type checking after initialisation.
-
-        :param self: Description
-        """
         # Convert all parameters to lists if they aren't already
         if not isinstance(self.networks, list):
             self.networks = [self.networks]
@@ -70,19 +73,7 @@ class RequestParams:
                 raise TypeError(
                     f"end must be a UTCDateTime object or list of UTCDateTime objects, got {type(self.end)}"
                 )
-        self.add_request_param_combos()
 
-    def add_request_param_combos(self):
-        """
-        Creates an iterator of all possible combinations of the request
-        parameters.
-
-        Returns:
-        -------
-        iterator of tuples
-            Each tuple is of the form
-            (network, station, location, channel, start, end)
-        """
         self.all_request_params = itertools.product(
             self.networks,
             self.stations,
@@ -109,6 +100,7 @@ class RequestParams:
         channels = kwargs.get("channels", kwargs.get("channel"))
         start = kwargs.get("start")
         end = kwargs.get("end")
+        timeout = kwargs.get("timeout", 10)
 
         missing_params = [
             name
@@ -133,6 +125,7 @@ class RequestParams:
             channels=channels,  # type: ignore
             start=start,  # type: ignore
             end=end,  # type: ignore
+            timeout=timeout,  # type: ignore
         )
 
 
