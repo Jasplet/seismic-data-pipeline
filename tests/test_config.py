@@ -116,7 +116,9 @@ class TestRequestParams:
 
     def test_bulk_requests_empty(self):
         with pytest.raises(ValueError) as excinfo:
-            config = RequestParams.from_bulk_inputs(bulk_requests=[])
+            _ = RequestParams.from_bulk_inputs(bulk_requests=[])
+
+        assert "bulk_requests is empty" in str(excinfo.value)
 
     def test_bulk_requests_valid_tuple_list(self):
         bulk_requests = [

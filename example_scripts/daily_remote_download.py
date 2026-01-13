@@ -10,7 +10,6 @@
 # Some editing of this script could make it request minute chunks
 # (for a whole day) or make hourly / minutely requests for data
 
-import asyncio
 import datetime
 import itertools
 import json
@@ -76,7 +75,7 @@ if __name__ == "__main__":
         networks, stations, locations, channels, start, end
     )
     # call get_data
-    asyncio.run(get_data(request_params, station_ips=ips_dict, data_dir=data_dir))
+    # asyncio.run(get_data(request_params, station_ips=ips_dict, data_dir=data_dir))
 
     script_end = timeit.default_timer()
     runtime = script_end - script_start
