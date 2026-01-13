@@ -31,105 +31,147 @@ class RequestParams:
 
     def __init__(
         self,
+        requests_to_make: list[tuple[str, str, str, str, UTCDateTime, UTCDateTime]] = [],
+        timeout: int = 10,
+    ):  # seconds
+        self.requests_to_make = requests_to_make
+        self.timeout = timeout
+        self._validate()
+    
+    def _validate(self):
+        if not self.requests_to_make:
+            raise ValueError("requests_to_make is empty")
+        for req in self.requests_to_make:
+            if len(req) != 6:
+                raise ValueError(
+                    "Each request tuple must have 6 elements: "
+                    "(network, station, location, channel, starttime, endtime)"
+                )
+            if not isinstance(req[4], UTCDateTime) or not isinstance(req[5], UTCDateTime):
+                raise TypeError("Start and end times must be of type UTCDateTime")
+            if req[4] >= req[5]:
+                raise ValueError("Start time must be before end time in each request")
+
+    def __iter__(self):
+        """Make the class iterable over the requests to make."""
+        return iter(self.requests_to_make)
+
+    def __len__(self):
+        """Return the number of requests to make."""
+        return len(self.requests_to_make)
+
+    @classmethod
+    def from_date_range(
+        cls, 
         networks: list[str] | str,
         stations: list[str] | str,
         locations: list[str] | str,
         channels: list[str] | str,
-        start: list[UTCDateTime] | UTCDateTime,
-        end: list[UTCDateTime] | UTCDateTime,
+        starttime: UTCDateTime,
+        endtime: UTCDateTime,
         timeout: int = 10,
-    ):  # seconds
-        self.networks = networks
-        self.stations = stations
-        self.locations = locations
-        self.channels = channels
-        self.start = start
-        self.end = end
-        self.timeout = timeout
+    ):
+        """
+        Create RequestParams for a continuous date range.
+        
+        Parameters:
+        ----------
+        networks : list[str] | str
+            SEED Network code(s)
+        stations : list[str] | str
+            SEED Station code(s)
+        locations : list[str] | str
+            Location code(s)
+        channels : list[str] | str
+            SEED Channel code(s)
+        starttime : UTCDateTime
+            Start time of request
+        endtime : UTCDateTime
+            End time of request
+        timeout : int
+            Timeout for HTTP requests in seconds
+        """
+        if endtime <= starttime:
+            raise ValueError("endtime must be greater than starttime")
 
-        # Convert all parameters to lists if they aren't already
-        if not isinstance(self.networks, list):
-            self.networks = [self.networks]
+        if not isinstance(networks, list):
+            networks = [networks]
+        if not isinstance(stations, list):
+            stations = [stations]
+        if not isinstance(locations, list):
+            locations = [locations]
+        if not isinstance(channels, list):
+            channels = [channels]
 
-        if not isinstance(self.stations, list):
-            self.stations = [self.stations]
+        reqs = itertools.product(
+            networks, stations, locations, channels, [starttime], [endtime]
+        )
 
-        if not isinstance(self.locations, list):
-            self.locations = [self.locations]
-
-        if not isinstance(self.channels, list):
-            self.channels = [self.channels]
-
-        if not isinstance(self.start, list):
-            if isinstance(self.start, UTCDateTime):
-                self.start = [self.start]
-            else:
-                raise TypeError(
-                    f"start must be a UTCDateTime object or list of UTCDateTime objects, got {type(self.start)}"
-                )
-        if not isinstance(self.end, list):
-            if isinstance(self.end, UTCDateTime):
-                self.end = [self.end]
-            else:
-                raise TypeError(
-                    f"end must be a UTCDateTime object or list of UTCDateTime objects, got {type(self.end)}"
-                )
-
-        self.all_request_params = itertools.product(
-            self.networks,
-            self.stations,
-            self.locations,
-            self.channels,
-            self.start,
-            self.end,
+        return cls(
+            requests_to_make=list(reqs),
+            timeout=timeout,
         )
 
     @classmethod
-    def from_user_inputs(cls, **kwargs):
+    def for_time_windows(
+        cls,
+        networks: list[str] | str,
+        stations: list[str] | str,
+        locations: list[str] | str,
+        channels: list[str] | str,
+        time_windows: list[tuple[UTCDateTime, UTCDateTime]],
+        timeout: int = 10,
+    ):
         """
-        Class method to create RequestParams object from user inputs.
-
+        Initializes RequestParams from tuple containing time windows.
+        
         Parameters:
         ----------
-        kwargs : dict
-            Dictionary of user inputs with expected keys:
-            networks, stations, locations, channels, start, end
-        """
-        networks = kwargs.get("networks", kwargs.get("network"))
-        stations = kwargs.get("stations", kwargs.get("station"))
-        locations = kwargs.get("locations", kwargs.get("location"))
-        channels = kwargs.get("channels", kwargs.get("channel"))
-        start = kwargs.get("start")
-        end = kwargs.get("end")
-        timeout = kwargs.get("timeout", 10)
+        networks : list[str] | str
+            SEED Network code(s)
+        stations : list[str] | str
+            SEED Station code(s)
+        locations : list[str] | str
+            Location code(s)
+        channels : list[str] | str
+            SEED Channel code(s)
+        time_windows : list[tuple[UTCDateTime, UTCDateTime]]
+            List of (start, end) time tuples
+        timeout : int
+            Timeout for HTTP requests in seconds
 
-        missing_params = [
-            name
-            for name, value in {
-                "network(s)": networks,
-                "station(s)": stations,
-                "location(s)": locations,
-                "channel(s)": channels,
-                "start": start,
-                "end": end,
-            }.items()
-            if value is None
-        ]
-        if missing_params:
-            raise ValueError(
-                f"Missing required parameters: {', '.join(missing_params)}"
-            )
+        Returns:
+        -------
+        RequestParams
+        
+        """
+        # Normalize to lists
+        if not isinstance(networks, list):
+            networks = [networks]
+        if not isinstance(stations, list):
+            stations = [stations]
+        if not isinstance(locations, list):
+            locations = [locations]
+        if not isinstance(channels, list):
+            channels = [channels]
+
+        if not time_windows:
+            raise ValueError("time_windows are empty")
+        
+        reqs = [(net, sta, loc, cha, start, end) for net, sta, loc, cha, (start, end) in 
+                itertools.product(
+                    networks, stations, locations, channels, time_windows
+                )]
+ 
         return cls(
-            networks=networks,  # type: ignore
-            stations=stations,  # type: ignore
-            locations=locations,  # type: ignore
-            channels=channels,  # type: ignore
-            start=start,  # type: ignore
-            end=end,  # type: ignore
-            timeout=timeout,  # type: ignore
+            requests_to_make=reqs,
+            timeout=timeout,
         )
 
-    def from_bulk_inputs(self, bulk_requests):
+    @classmethod
+    def from_bulk_inputs(cls,
+                         bulk_requests,
+                         timeout: int = 10):
         """
         Initializes RequestParams from tuple containing all request parameters.
         Intended use if for bulk, discontinuous requests, such as for gapfilling.
@@ -155,8 +197,112 @@ class RequestParams:
         """
         if Path(bulk_requests).is_file():
             with open(bulk_requests, "rb") as f:
-                self.all_request_params = pickle.load(f)
+                reqs = pickle.load(f)
+        elif not bulk_requests:
+            raise ValueError("bulk_requests is empty")
+        else:
+            reqs = bulk_requests
+        
+        return cls(requests_to_make=reqs,
+                   timeout=timeout)
 
+ @classmethod
+    def from_user_inputs(cls, **kwargs):
+        """
+        Flexible constructor from keyword arguments.
+        Routes to appropriate constructor based on provided arguments.
+        
+        Parameters:
+        ----------
+        **kwargs : dict
+            Accepts:
+            - network(s), station(s), location(s), channel(s) with:
+              - time_windows: list of (start, end) tuples
+              - OR start/starttime and end/endtime: single time window
+            - bulk_requests: list of complete request tuples
+            
+        Examples:
+        --------
+        >>> # Single time window
+        >>> params = RequestParams.from_user_inputs(
+        ...     network="XX",
+        ...     stations=["STA1", "STA2"],
+        ...     location="00",
+        ...     channel="HHZ",
+        ...     start=UTCDateTime("2026-01-01"),
+        ...     end=UTCDateTime("2026-01-02"),
+        ... )
+        
+        >>> # Multiple time windows
+        >>> params = RequestParams.from_user_inputs(
+        ...     network="XX",
+        ...     station="TEST",
+        ...     location="00",
+        ...     channel="HHZ",
+        ...     time_windows=[
+        ...         (UTCDateTime("2026-01-01"), UTCDateTime("2026-01-02")),
+        ...         (UTCDateTime("2026-01-10"), UTCDateTime("2026-01-11")),
+        ...     ]
+        ... )
+        
+        >>> # Bulk requests
+        >>> params = RequestParams.from_user_inputs(
+        ...     bulk_requests=[
+        ...         ("XX", "STA1", "00", "HHZ", UTCDateTime("2026-01-01"), UTCDateTime("2026-01-02")),
+        ...     ]
+        ... )
+        """
+        # Check for bulk_requests first
+        bulk_requests = kwargs.get("bulk_requests")
+        if bulk_requests:
+            return cls.from_bulk_requests(bulk_requests)
+        
+        # Extract SEED parameters (singular or plural)
+        networks = kwargs.get("networks", kwargs.get("network"))
+        stations = kwargs.get("stations", kwargs.get("station"))
+        locations = kwargs.get("locations", kwargs.get("location"))
+        channels = kwargs.get("channels", kwargs.get("channel"))
+        
+        # Check for time_windows
+        time_windows = kwargs.get("time_windows")
+        if time_windows:
+            if any(x is None for x in [networks, stations, locations, channels]):
+                raise ValueError("Must provide network(s), station(s), location(s), and channel(s)")
+            return cls.from_time_windows(
+                networks=networks,
+                stations=stations,
+                locations=locations,
+                channels=channels,
+                time_windows=time_windows,
+            )
+        
+        # Otherwise use start/end for date range
+        start = kwargs.get("start", kwargs.get("starttime"))
+        end = kwargs.get("end", kwargs.get("endtime"))
+        
+        missing_params = []
+        for name, value in {
+            "network(s)": networks,
+            "station(s)": stations,
+            "location(s)": locations,
+            "channel(s)": channels,
+            "start/starttime": start,
+            "end/endtime": end,
+        }.items():
+            if value is None:
+                missing_params.append(name)
+        
+        if missing_params:
+            raise ValueError(f"Missing required parameters: {', '.join(missing_params)}")
+        
+        return cls.from_date_range(
+            networks=networks,
+            stations=stations,
+            locations=locations,
+            channels=channels,
+            starttime=start,
+            endtime=end,
+        )
 
 @dataclass
 class PipelineConfig:
