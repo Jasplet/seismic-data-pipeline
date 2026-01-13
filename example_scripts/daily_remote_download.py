@@ -20,8 +20,6 @@ from pathlib import Path
 
 from obspy import UTCDateTime
 
-from pipeline.utils import get_data
-
 log = logging.getLogger(__name__)
 logdir = Path("/home/joseph/logs")
 # test is logdir exists, if not then set to cwd
@@ -35,28 +33,26 @@ if __name__ == "__main__":
     today = datetime.datetime.today()
     script_start = timeit.default_timer()
     logging.basicConfig(
-        filename=f"{logdir}/nymar_remote_download_"
-        + f"{today.year}_{today.month:02d}_{today.day:02d}.log",
+        filename=f"{logdir}/remote_download_" + f"{today.strftime('%Y_%m_%d')}.log",
         level=logging.INFO,
     )
     log.info(f"Starting download. Time is {datetime.datetime.now()}")
 
     # ----------- Start of variable to set ----------
     # directory to write data to
-    data_dir = Path("/home/joseph/data")  # change to /your/path/here
+    # change to the path you want to store data
+
+    data_dir = Path("/your/path/here")
     # Provide IP addresses. Here I have stored them in a JSON file to keep
     # them off GitHub.
-    with open("/home/joseph/nymar_zerotier_ips.json", "r") as w:
+    with open("/path/to/your/station_ips.json", "r") as w:
         ips_dict = json.load(w)
 
-    with open("/home/joseph/nymar_request_params.json", "r") as param_file:
-        params = json.load(param_file)
-
     # Seedlink Parameters
-    networks = params["networks"]
-    stations = params["stations"]
-    channels = params["channels"]
-    locations = params["locations"]
+    networks = ["OX"]
+    stations = ["STA1", "STA2"]
+    channels = ["HHZ", "HHN", "HHE"]
+    locations = ["00"]
 
     # Set number of days to downlaod (for preliminary gapfilling)
     backfill_span = datetime.timedelta(days=2)
