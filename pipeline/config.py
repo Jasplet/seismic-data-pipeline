@@ -117,7 +117,7 @@ class RequestParams:
         )
 
     @classmethod
-    def for_time_windows(
+    def from_time_windows(
         cls,
         networks: list[str] | str,
         stations: list[str] | str,
@@ -199,7 +199,7 @@ class RequestParams:
         ----------
         bulk_requests: Description
         """
-        if Path(bulk_requests).is_file():
+        if isinstance(bulk_requests, (str, Path)):
             with open(bulk_requests, "rb") as f:
                 reqs = pickle.load(f)
         elif not bulk_requests:
