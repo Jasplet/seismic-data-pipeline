@@ -1,6 +1,7 @@
 # Create a temporary pickle file with bulk requests
 import pickle
 import tempfile
+from collections.abc import Iterable
 from datetime import timedelta
 from pathlib import Path
 
@@ -39,6 +40,7 @@ class TestRequestParams:
             obspy.UTCDateTime("2024-01-02T00:00:00"),
         )
         assert len(config) == 16  # 2 networks * 2 stations * 2 locations * 2 channels
+        assert isinstance(config, Iterable)
 
     def test_from_user_inputs_missing_params(self):
         user_inputs = {
@@ -76,6 +78,7 @@ class TestRequestParams:
             obspy.UTCDateTime("2024-01-02T00:00:00"),
         )
         assert len(config) == 1
+        assert isinstance(config, Iterable)
 
     def test_from_time_windows(self):
         params = {
@@ -113,6 +116,7 @@ class TestRequestParams:
             obspy.UTCDateTime("2024-03-02T12:00:00"),
         )
         assert len(config) == 4  # 2 networks * 1 station * 1 location * 1 channel
+        assert isinstance(config, Iterable)
 
     def test_bulk_requests_empty(self):
         with pytest.raises(ValueError) as excinfo:
@@ -144,6 +148,7 @@ class TestRequestParams:
         assert config.requests_to_make[0] == bulk_requests[0]
         assert config.requests_to_make[1] == bulk_requests[1]
         assert len(config) == 2
+        assert isinstance(config, Iterable)
 
     def test_bulk_requests_valid_pickle(self):
         bulk_requests = [
