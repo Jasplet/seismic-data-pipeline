@@ -1,4 +1,5 @@
 import itertools
+import pickle
 from dataclasses import dataclass, field
 from datetime import timedelta
 from pathlib import Path
@@ -127,6 +128,34 @@ class RequestParams:
             end=end,  # type: ignore
             timeout=timeout,  # type: ignore
         )
+
+    def from_bulk_inputs(self, bulk_requests):
+        """
+        Initializes RequestParams from tuple containing all request parameters.
+        Intended use if for bulk, discontinuous requests, such as for gapfilling.
+
+        Example of what request_params should look like...
+        ```
+        request_params = [('OX','NYM2','00','HHN',
+                        UTCDateTime(2024, 10, 1, 0, 0, 0),
+                        UTCDateTime(2024, 10,2, 0, 0, 0)),
+                        ('OX','NYM2','00','HHE',
+                        UTCDateTime(2024, 4, 28, 0, 0, 0),
+                        UTCDateTime(2024, 4, 28, 0, 0, 0)),
+                        ('OX','NYM3','00','HHN',
+                        UTCDateTime(2023, 12, 1, 0, 0, 0),
+                        UTCDateTime(2023, 12,2, 0, 0, 0)),
+                        ('OX','NYM4','00','HHZ',
+                        UTCDateTime(2024, 10, 1, 0, 0, 0),
+                        UTCDateTime(2024, 10,2, 0, 0, 0))]
+        ```
+        Parameters:
+        ----------
+        bulk_requests: Description
+        """
+        if Path(bulk_requests).is_file():
+            with open(bulk_requests, "rb") as f:
+                self.all_request_params = pickle.load(f)
 
 
 @dataclass
