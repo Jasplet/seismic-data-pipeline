@@ -29,12 +29,12 @@ class RequestParams:
         Timeout for HTTP requests in seconds
     """
 
-    networks: list[str]
-    stations: list[str]
-    locations: list[str]
-    channels: list[str]
-    start: list[UTCDateTime]
-    end: list[UTCDateTime]
+    networks: list[str] | str
+    stations: list[str] | str
+    locations: list[str] | str
+    channels: list[str] | str
+    start: list[UTCDateTime] | UTCDateTime
+    end: list[UTCDateTime] | UTCDateTime
     timeout: int = field(default=10)  # seconds
 
     def __post_init__(self):
