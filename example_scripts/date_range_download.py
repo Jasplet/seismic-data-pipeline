@@ -89,15 +89,15 @@ if __name__ == "__main__":
     # SEED parameters to request
     # Check the request parameters match the settings on your Certimus/Minimus
     # These can be seen on the Certimus/Minimus status page (https://{your-ip-here})
-    Params_for_request = RequestParams(
+    Params_for_request = RequestParams.from_date_range(
         networks=["OX"],  # Network code
         stations=["STA1", "STA2"],  # Station codes
         locations=["00"],  # Location code
         channels=["HHZ", "HHN", "HHE"],  # Channel codes
         # Time span to get data for. Edit these start/end objects
         # to customise the timespan to get data for.
-        start=UTCDateTime(2026, 1, 10, 0, 0, 0),
-        end=UTCDateTime(2026, 1, 11, 0, 0, 0),
+        starttime=UTCDateTime(2026, 1, 10, 0, 0, 0),
+        endtime=UTCDateTime(2026, 1, 11, 0, 0, 0),
     )
 
     # =========== End of variables to set ===========
