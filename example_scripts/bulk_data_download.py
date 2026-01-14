@@ -20,15 +20,14 @@
 # Some editing of this script could make it request minute chunks
 # (for a whole day) or make hourly / minutely requests for data
 
-import asyncio
 import datetime
 import json
 import logging
-import pickle
 import timeit
 from pathlib import Path
 
-from pipeline.utils import get_data
+from pipeline.config import PipelineConfig, RequestParams
+from pipeline.core import DataPipeline
 
 log = logging.getLogger(__name__)
 logdir = Path("/home/joseph/logs")
@@ -44,28 +43,50 @@ if __name__ == "__main__":
     logging.basicConfig(filename=f"{logdir}/nymar_backfill.log", level=logging.INFO)
     log.info(f"Starting download. Time is {datetime.datetime.now()}")
 
-    # ---------- Start of variable to set ----------
-    # directory to write data to
-    data_dir = Path("/Volumes/NYMAR_Y1/" + "NYM1_gap_filling")
-    # change to /your/path/to/datadir
-    # data_dir = Path.cwd()
-    # Provide IP addresses. Here I have stored them in a JSON file to keep
-    # them off GitHub.
-    with open("/Users/eart0593/Projects/Agile/NYMAR/nymar_zerotier_ips.json", "r") as w:
+    # ========== Start of variables to set ==========
+
+    # Create pipeline configuration object
+    # The config is quite simple. The key variable is the data_dir
+    # which sets where data will be written to.
+    # You can also set the chunksize_hours variable to change
+    # the length of each data request.
+    # The buffer_seconds variable adds a small buffer to the start
+    # and end of each request to help ensure no data is missed
+    # due to timing issues.
+    # If a config object is not provided to the DataPipeline object
+    # then a default config is used using the current working directory as
+    # data_dir and the same chunk and buffer settings as shown here.
+
+    request_config = PipelineConfig(
+        data_dir=Path(
+            "/path/to/datadir"
+        ),  # directory to write data to, change to /your/path/to/datadir
+        chunksize_hours=datetime.timedelta(hours=1),  # length of data to request
+        buffer_seconds=datetime.timedelta(
+            seconds=150
+        ),  # buffer to add to the start/end of each request
+    )
+
+    # Load IP addresses.
+    # Here I have stored them in a JSON file to keep them off GitHub.
+    # JSON should be in the format:
+    # {
+    #   "STA1": "192.168.1.1",
+    #   "STA2": "192.168.1.2"
+    # }
+    with open("/path/to/instrument_ips.json", "r") as w:
         ips_dict = json.load(w)
+
+    data_fetcher = DataPipeline(station_ips=ips_dict, config=request_config)
 
     # Set up request parameters here. This is an example only. You may want
     # To use this script as an exmample to build your own code which finds
     # gaps that need filling and then sends the requests.
-    # gapfile = '/Users/eart0593/Projects/Agile/NYMAR/July_Oct_missing_files.pkl'
-    gapfile = (
-        "/Users/eart0593/Projects/Agile/NYMAR/data-gaps/NYM1_missing_files_30_10_25.pkl"
-    )
-    with open(gapfile, "rb") as f:
-        request_params = pickle.load(f)
-
-    # Example of what request_params should look like...
-
+    bulk_requests = "/path/to/bulk_requests.pkl"
+    requests = RequestParams.from_bulk_inputs(bulk_requests)
+    # Example of what bulk_requests should look like
+    # RequestParams.from_bulk_inputs will also take a
+    # premade list of tuples as shown below.
     # request_params = [('OX','NYM2','00','HHN',
     #                   UTCDateTime(2024, 10, 1, 0, 0, 0),
     #                   UTCDateTime(2024, 10,2, 0, 0, 0)),
@@ -78,10 +99,11 @@ if __name__ == "__main__":
     #                   ('OX','NYM4','00','HHZ',
     #                   UTCDateTime(2024, 10, 1, 0, 0, 0),
     #                   UTCDateTime(2024, 10,2, 0, 0, 0))]
-    # ----------- End of variables to set ----------
-
-    asyncio.run(get_data(request_params, station_ips=ips_dict, data_dir=data_dir))
-
+    # requests = RequestParams.from_bulk_inputs(request_params)
+    # ========== End of variables to set ==========
+    # Get the data
+    data_fetcher.get_data(requests)
+    log.info(f"Download finished. Time is {datetime.datetime.now()}")
     script_end = timeit.default_timer()
     runtime = script_end - script_start
 

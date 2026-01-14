@@ -196,3 +196,8 @@ class TestPipelineConfig:
         assert "Max number of async requests supported by the sensors is 3" in str(
             excinfo.value
         )
+
+    def test_pipeline_catches_invalid_async_requests(self):
+        with pytest.raises(ValueError) as excinfo:
+            PipelineConfig(data_dir=Path("/path/to/data"), n_async_requests=0)
+        assert "Number of async requests must be at least 1" in str(excinfo.value)

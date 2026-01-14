@@ -339,3 +339,6 @@ class PipelineConfig:
             raise ValueError(
                 "Max number of async requests supported by the sensors is 3"
             )
+
+        if self.n_async_requests < 1:
+            raise ValueError("Number of async requests must be at least 1")

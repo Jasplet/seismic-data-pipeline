@@ -11,13 +11,15 @@
 # (for a whole day) or make hourly / minutely requests for data
 
 import datetime
-import itertools
 import json
 import logging
 import timeit
 from pathlib import Path
 
 from obspy import UTCDateTime
+
+from pipeline.config import PipelineConfig, RequestParams
+from pipeline.core import DataPipeline
 
 log = logging.getLogger(__name__)
 logdir = Path("/home/joseph/logs")
@@ -37,45 +39,69 @@ if __name__ == "__main__":
     )
     log.info(f"Starting download. Time is {datetime.datetime.now()}")
 
-    # ----------- Start of variable to set ----------
-    # directory to write data to
-    # change to the path you want to store data
+    # ========== Start of variables to set ==========
 
-    data_dir = Path("/your/path/here")
-    # Provide IP addresses. Here I have stored them in a JSON file to keep
-    # them off GitHub.
-    with open("/path/to/your/station_ips.json", "r") as w:
+    # Create pipeline configuration object
+    # The config is quite simple. The key variable is the data_dir
+    # which sets where data will be written to.
+    # You can also set the chunksize_hours variable to change
+    # the length of each data request.
+    # The buffer_seconds variable adds a small buffer to the start
+    # and end of each request to help ensure no data is missed
+    # due to timing issues.
+    # If a config object is not provided to the DataPipeline object
+    # then a default config is used using the current working directory as
+    # data_dir and the same chunk and buffer settings as shown here.
+
+    request_config = PipelineConfig(
+        data_dir=Path(
+            "/path/to/datadir"
+        ),  # directory to write data to, change to /your/path/to/datadir
+        chunksize_hours=datetime.timedelta(hours=1),  # length of data to request
+        buffer_seconds=datetime.timedelta(
+            seconds=150
+        ),  # buffer to add to the start/end of each request
+    )
+
+    # Load IP addresses.
+    # Here I have stored them in a JSON file to keep them off GitHub.
+    # JSON should be in the format:
+    # {
+    #   "STA1": "192.168.1.1",
+    #   "STA2": "192.168.1.2"
+    # }
+    with open("/path/to/instrument_ips.json", "r") as w:
         ips_dict = json.load(w)
+    # Alternatively you can hardcode the IPs here as a dictionary
+    # ips_dict = {
+    #     "STA1": "192.168.1.1",
+    #     "STA2": "192.168.1.2"
+    # }
 
-    # Seedlink Parameters
-    networks = ["OX"]
-    stations = ["STA1", "STA2"]
-    channels = ["HHZ", "HHN", "HHE"]
-    locations = ["00"]
+    # Initialize DataPipeline object
+    data_fetcher = DataPipeline(station_ips=ips_dict, config=request_config)
 
-    # Set number of days to downlaod (for preliminary gapfilling)
+    # Set a number of days to backfill from
+    # (i.e., how many previous days to request)
     backfill_span = datetime.timedelta(days=2)
-    #  backfill_span = datetime.timedelta(hours=2)
-
-    # SET TO CORRECT CODE. should be '00' for veloctity data
-    # will be somehing different for voltage
-    # check status page (https://{your-ip-here})
-
-    # set start / end date.
-    # try to get previous 2 days of data (current day will not be available)
-    # Here we want to iterate over the preding days
-    # so truncate the today datetime object
-    start = [UTCDateTime(today.year, today.month, today.day, 0, 0, 0) - backfill_span]
-    end = [UTCDateTime(today.year, today.month, today.day, 0, 0, 0)]
+    # SEED parameters to request
+    # Check the request parameters match the settings on your Certimus/Minimus
+    # These can be seen on the Certimus/Minimus status page (https://{your-ip-here})
+    start = UTCDateTime(datetime.date.today() - backfill_span)
+    end = UTCDateTime(datetime.date.today())
     log.info(f"Query start time: {start}")
     log.info(f"Query end time: {end}")
-    # ---------- End of variables to set ----------
 
-    request_params = itertools.product(
-        networks, stations, locations, channels, start, end
+    Params_for_request = RequestParams.from_date_range(
+        networks=["OX"],  # Network code
+        stations=["STA1", "STA2"],  # Station codes
+        locations=["00"],  # Location code
+        channels=["HHZ", "HHN", "HHE"],  # Channel codes
+        # Time span to get data for. Edit these start/end objects
+        # to customise the timespan to get data for.
+        starttime=start,
+        endtime=end,
     )
-    # call get_data
-    # asyncio.run(get_data(request_params, station_ips=ips_dict, data_dir=data_dir))
 
     script_end = timeit.default_timer()
     runtime = script_end - script_start

@@ -28,6 +28,17 @@ class DataPipeline:
         self.config = config
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
+        # Only configure if is no higher level logging handler
+        # Adds a handler only if none exist (avoid duplicate logs)
+        # If a user configures ther own logging, this will not override it
+        if not self.logger.hasHandlers():
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter(
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            )
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
+            self.logger.propagate = False  # Don't propagate to root logger
 
     def get_data(self, SEED_params: RequestParams):
         """
