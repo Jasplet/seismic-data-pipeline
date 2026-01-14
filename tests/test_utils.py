@@ -4,6 +4,7 @@ import unittest
 import pytest
 from obspy import UTCDateTime
 
+import pipeline.urls as urls
 import pipeline.utils as utils  # Assuming this is saved as data_pipeline.py
 
 
@@ -87,7 +88,7 @@ def test_form_request(
             + f"from={starttime.timestamp}&to={endtime.timestamp}"
         ]
     )
-    request_url = utils.form_request(
+    request_url = urls.form_request(
         sensor_ip,
         network,
         station,
@@ -108,7 +109,7 @@ def test_form_request_start_after_end():
     starttime = UTCDateTime("2024-01-01T03:00:00")
     endtime = UTCDateTime("2024-01-01T02:00:00")
     with pytest.raises(ValueError, match="Start of request if before the end!"):
-        utils.form_request(
+        urls.form_request(
             sensor_ip,
             network,
             station,

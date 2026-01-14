@@ -7,7 +7,7 @@ import obspy
 
 # Imports from across module
 from pipeline.config import PipelineConfig, RequestParams
-from pipeline.utils import group_urls_by_station, make_urls
+from pipeline.urls import group_urls_by_station, make_urls
 
 
 class DataPipeline:
