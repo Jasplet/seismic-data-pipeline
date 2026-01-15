@@ -23,11 +23,11 @@ class DataPipeline:
             Configuration parameters for the data pipeline.
             If not provided, defaults to PipelineConfig().
         """
-
-        self.station_ips = station_ips
-        self.config = config
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
+        self.config = config
+        self.station_ips = station_ips
+        self._validate_ips()
         # Only configure if is no higher level logging handler
         # Adds a handler only if none exist (avoid duplicate logs)
         # If a user configures ther own logging, this will not override it
@@ -39,6 +39,37 @@ class DataPipeline:
             handler.setFormatter(formatter)
             self.logger.addHandler(handler)
             self.logger.propagate = False  # Don't propagate to root logger
+
+    def _validate_ips(self):
+        """
+        Validates that station IPs are in correct format.
+
+        Raises ValueError if any IP is invalid.
+        """
+
+        for station, ip in self.station_ips.items():
+            # check if IP is non-empty string
+            if not isinstance(ip, str) or len(ip) == 0:
+                raise ValueError(f"Invalid IP address for station {station}: {ip}")
+            if ":" in ip:
+                # check if port is valid integer
+                ip_part, port_part = ip.split(":")
+                if not port_part.isdigit():
+                    raise ValueError(
+                        f"Invalid port in IP address for station {station}: {ip}"
+                    )
+                ip_sections = ip_part.split(".")
+                for section in ip_sections:
+                    if not (0 <= int(section) <= 255):
+                        raise ValueError(
+                            f"Invalid IP address for station {station}: {ip}"
+                        )
+            if ip.count(".") != 3:
+                raise ValueError(
+                    f"Invalid IP address format for station {station}: {ip}"
+                )
+        if self.logger:
+            self.logger.info(f"Validated IP address for station {station}: {ip}")
 
     def get_data(self, SEED_params: RequestParams):
         """
