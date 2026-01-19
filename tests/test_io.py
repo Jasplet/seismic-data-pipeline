@@ -5,8 +5,12 @@ from pathlib import Path
 import pytest
 import yaml
 
-from pipeline.config import  RequestParams
-from pipeline.io import _create_pipeline_config, _load_config_file, _load_station_ips, _create_request_params
+from pipeline.io import (
+    _create_pipeline_config,
+    _create_request_params,
+    _load_config_file,
+    _load_station_ips,
+)
 
 
 def test_load_station_ips_from_dict():
@@ -109,6 +113,68 @@ def test_create_request_params_from_file(tmp_path):
     output_request_params = _create_request_params(
         {"request_param_file": str(request_file)}
     )
-    assert len(output_request_params) == len)
+    assert len(output_request_params) == len(bulk_requests)
     assert output_request_params.requests_to_make[0] == bulk_requests[0]
     assert output_request_params.requests_to_make[1] == bulk_requests[1]
+
+
+def test_create_request_params_from_seed_params():
+    seed_params = [
+        {
+            "networks": "XX",
+            "stations": "STA1",
+            "locations": "00",
+            "channels": "BHZ",
+            "start": datetime.datetime(2024, 1, 1),
+            "end": datetime.datetime(2024, 1, 2),
+        },
+        {
+            "networks": "YY",
+            "stations": "STA2",
+            "locations": "10",
+            "channels": "EHN",
+            "start": datetime.datetime(2024, 2, 1),
+            "end": datetime.datetime(2024, 2, 2),
+        },
+    ]
+    output_request_params = _create_request_params({"seed_params": seed_params})
+    assert len(output_request_params) == len(seed_params)
+    assert output_request_params.requests_to_make[0] == (
+        "XX",
+        "STA1",
+        "00",
+        "BHZ",
+        datetime.datetime(2024, 1, 1),
+        datetime.datetime(2024, 1, 2),
+    )
+    assert output_request_params.requests_to_make[1] == (
+        "YY",
+        "STA2",
+        "10",
+        "EHN",
+        datetime.datetime(2024, 2, 1),
+        datetime.datetime(2024, 2, 2),
+    )
+
+
+def test_create_request_params_missing_fields():
+    seed_params = [
+        {
+            "network": "XX",
+            "station": "STA1",
+            # Missing location
+            "channel": "BHZ",
+            "starttime": datetime.datetime(2024, 1, 1),
+            "endtime": datetime.datetime(2024, 1, 2),
+        }
+    ]
+    with pytest.raises(ValueError):
+        _ = _create_request_params({"seed_params": seed_params})
+
+
+def test_create_request_params_no_file():
+    with pytest.raises(FileNotFoundError) as excinfo:
+        _ = _create_request_params({"request_param_file": "non_existent_file.pkl"})
+    assert "Request parameters file non_existent_file.pkl does not exist." in str(
+        excinfo.value
+    )
