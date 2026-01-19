@@ -19,11 +19,14 @@ def _load_config_file(config_file: str | Path):
     if not config_path.exists():
         raise FileNotFoundError(f"Config file {config_file} does not exist.")
 
-    with open(config_path, "r") as f:
-        all_config = yaml.safe_load(f)
-        if all_config == {}:
-            raise ValueError("Config file is empty.")
-        return all_config
+    try:
+        with open(config_path, "r") as f:
+            all_config = yaml.safe_load(f)
+            if all_config == {}:
+                raise ValueError("Config file is empty.")
+            return all_config
+    except yaml.YAMLError as e:
+        raise ValueError(f"Error parsing YAML config file: {e}")
 
 
 def _setup_logging(log_config: dict):
