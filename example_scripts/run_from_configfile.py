@@ -19,6 +19,8 @@ if __name__ == "__main__":
         logging.error(f"Error running data pipeline: {e}")
         print(f"Error running data pipeline: {e}")
     finally:
+        # Finally block will always run to log runtime even
+        # if an exception occurs.
         script_end = timeit.default_timer()
         runtime = script_end - script_start
         msg = f"Runtime was {runtime:4.2f} seconds, or {runtime / 60:4.2f} minutes."
