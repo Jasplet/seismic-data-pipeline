@@ -1,14 +1,14 @@
 import logging
 import timeit
 
-from pipeline.io import run_from_config_file
+from pipeline.io import load_from_config_file
 
 if __name__ == "__main__":
     script_start = timeit.default_timer()
     config_file = "path/to/config.yml"
 
     try:
-        data_pipeline, request_params = run_from_config_file(config_file)
+        data_pipeline, request_params = load_from_config_file(config_file)
         # Now get the data
         logging.info("Starting data download")
         print("Starting data download...")
