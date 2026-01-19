@@ -40,11 +40,26 @@ def _setup_logging(log_config: dict):
     if not log_dir.exists():
         print(f"Log directory {log_dir} does not exist, creating it.")
         log_dir.mkdir(parents=True, exist_ok=True)
+
     log_path = log_dir / log_filename
-    logging.basicConfig(
-        filename=log_path, level=getattr(logging, log_level.upper(), logging.INFO)
-    )
+    # Remove any existing handlers to avoid duplicate logs
     logger = logging.getLogger(__name__)
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+
+    # Create file handler
+    file_handler = logging.FileHandler(log_path)
+    file_handler.setLevel
+
+    # Formatter
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    file_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    logger.setLevel(getattr(logging, log_level.upper(), logging.INFO))
+    logger.propagate = False
     logging.info("Log setup complete.")
     return logger
 
