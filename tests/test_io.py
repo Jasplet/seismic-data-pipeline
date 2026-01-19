@@ -1,3 +1,4 @@
+import datetime
 import json
 from pathlib import Path
 
@@ -40,7 +41,7 @@ def test_load_station_ips_no_input():
 
 def test_load_config_file():
     """Test reading of the YML config file"""
-    test_file = "../example_scripts/dummy_config.yml"
+    test_file = "example_scripts/dummy_config.yml"
     with open(test_file, "r") as f:
         expected_config = yaml.safe_load(f)
     config = _load_config_file(test_file)
@@ -62,14 +63,18 @@ def test_create_pipeline_config():
         "buffer_seconds": 300,
     }
     pipeline_config = _create_pipeline_config(pipeline_config_yml)
-    assert pipeline_config.data_dir == "/path/to/data"
-    assert pipeline_config.chunksize_hours.total_seconds() == 7200  # 2 hours
-    assert pipeline_config.buffer_seconds.total_seconds() == 300
+    assert pipeline_config.data_dir == Path("/path/to/data")
+    assert pipeline_config.chunksize_hours == datetime.timedelta(hours=2)
+    assert pipeline_config.buffer_seconds == datetime.timedelta(seconds=300)
 
 
 def test_create_pipeline_config_defaults():
     pipeline_config_yml = {}
     pipeline_config = _create_pipeline_config(pipeline_config_yml)
     assert pipeline_config.data_dir == pytest.approx(Path.cwd())
-    assert pipeline_config.chunksize_hours.total_seconds() == 3600  # default 1 hour
-    assert pipeline_config.buffer_seconds.total_seconds() == 150  # default 150 seconds
+    assert pipeline_config.chunksize_hours == datetime.timedelta(
+        hours=1
+    )  # default 1 hour
+    assert pipeline_config.buffer_seconds == datetime.timedelta(
+        seconds=150
+    )  # default 150 seconds
