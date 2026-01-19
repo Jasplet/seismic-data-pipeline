@@ -5,7 +5,8 @@ from pathlib import Path
 import pytest
 import yaml
 
-from pipeline.io import _create_pipeline_config, _load_config_file, _load_station_ips
+from pipeline.config import  RequestParams
+from pipeline.io import _create_pipeline_config, _load_config_file, _load_station_ips, _create_request_params
 
 
 def test_load_station_ips_from_dict():
@@ -78,3 +79,36 @@ def test_create_pipeline_config_defaults():
     assert pipeline_config.buffer_seconds == datetime.timedelta(
         seconds=150
     )  # default 150 seconds
+
+
+def test_create_request_params_from_file(tmp_path):
+    bulk_requests = [
+        (
+            "XX",
+            "STA1",
+            "00",
+            "BHZ",
+            datetime.datetime(2024, 1, 1),
+            datetime.datetime(2024, 1, 2),
+        ),
+        (
+            "YY",
+            "STA2",
+            "10",
+            "EHN",
+            datetime.datetime(2024, 2, 1),
+            datetime.datetime(2024, 2, 2),
+        ),
+    ]
+    request_file = tmp_path / "requests.pkl"
+    with open(request_file, "wb") as f:
+        import pickle
+
+        pickle.dump(bulk_requests, f)
+
+    output_request_params = _create_request_params(
+        {"request_param_file": str(request_file)}
+    )
+    assert len(output_request_params) == len)
+    assert output_request_params.requests_to_make[0] == bulk_requests[0]
+    assert output_request_params.requests_to_make[1] == bulk_requests[1]
