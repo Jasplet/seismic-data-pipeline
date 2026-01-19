@@ -22,7 +22,7 @@ def _load_config_file(config_file: str | Path):
     try:
         with open(config_path, "r") as f:
             all_config = yaml.safe_load(f)
-            if all_config == {}:
+            if all_config is None:
                 raise ValueError("Config file is empty.")
             return all_config
     except yaml.YAMLError as e:
@@ -91,13 +91,19 @@ def _create_pipeline_config(pipeline_config_yml: dict):
     :type pipeline_config_yml: dict
     """
     data_dir = pipeline_config_yml.get("data_dir", Path.cwd())
-    chunksize_hours = datetime.timedelta(hours=pipeline_config_yml["chunksize_hours"])
-    buffer_seconds = datetime.timedelta(seconds=pipeline_config_yml["buffer_seconds"])
-    pipeline_config = PipelineConfig(
-        data_dir=Path(data_dir),
-        chunksize_hours=chunksize_hours,
-        buffer_seconds=buffer_seconds,
-    )
+
+    kwargs = {"data_dir": data_dir}
+    if "chunksize_hours" in pipeline_config_yml:
+        kwargs["chunksize_hours"] = datetime.timedelta(
+            hours=pipeline_config_yml["chunksize_hours"]
+        )
+
+    if "buffer_seconds" in pipeline_config_yml:
+        kwargs["buffer_seconds"] = datetime.timedelta(
+            seconds=pipeline_config_yml["buffer_seconds"]
+        )
+
+    pipeline_config = PipelineConfig(**kwargs)
     logging.info("PipelineConfig created from config.")
     return pipeline_config
 
