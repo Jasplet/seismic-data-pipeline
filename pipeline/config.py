@@ -274,10 +274,10 @@ class RequestParams:
                     "Must provide network(s), station(s), location(s), and channel(s)"
                 )
             return cls.from_time_windows(
-                networks=networks,
-                stations=stations,
-                locations=locations,
-                channels=channels,
+                networks=networks,  # type: ignore
+                stations=stations,  # type: ignore
+                locations=locations,  # type: ignore
+                channels=channels,  # type: ignore
                 time_windows=time_windows,
             )
 
