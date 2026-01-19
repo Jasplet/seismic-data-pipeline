@@ -89,7 +89,7 @@ if __name__ == "__main__":
     # SEED parameters to request
     # Check the request parameters match the settings on your Certimus/Minimus
     # These can be seen on the Certimus/Minimus status page (https://{your-ip-here})
-    Params_for_request = RequestParams.from_date_range(
+    ParamsForRequest = RequestParams.from_date_range(
         networks=["OX"],  # Network code
         stations=["STA1", "STA2"],  # Station codes
         locations=["00"],  # Location code
@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
     # Get the data
 
-    data_fetcher.get_data(Params_for_request)
+    data_fetcher.get_data(ParamsForRequest)
     log.info("Finished download.")
     script_end = timeit.default_timer()
     runtime = script_end - script_start
