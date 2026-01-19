@@ -138,7 +138,7 @@ def _create_request_params(request_config_yml: dict):
         days_before = request_config_yml.get("days_before", 2)
         date_today = datetime.date.today()
         end = UTCDateTime(date_today)
-        start = UTCDateTime(date_today - days_before)
+        start = UTCDateTime(date_today - datetime.timedelta(days=days_before))
         logging.info(
             f"Cron mode active. Setting starttime to {start} and endtime to {end}."
         )
@@ -172,7 +172,7 @@ def _create_request_params(request_config_yml: dict):
     return ParamsForRequest
 
 
-def run_from_config_file(config_file: str | Path):
+def load_from_config_file(config_file: str | Path):
     """
     Reads requests config from a YML file.
 
@@ -255,7 +255,7 @@ if __name__ == "__main__":
     config_file = "path/to/config.yml"
 
     try:
-        data_pipeline, request_params = run_from_config_file(config_file)
+        data_pipeline, request_params = load_from_config_file(config_file)
         # Now get the data
         logging.info("Starting data download")
         print("Starting data download...")
