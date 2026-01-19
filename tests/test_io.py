@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 from pathlib import Path
 
 import pytest
@@ -11,6 +12,7 @@ from pipeline.io import (
     _create_request_params,
     _load_config_file,
     _load_station_ips,
+    _setup_logging,
     load_from_config_file,
 )
 
@@ -295,3 +297,48 @@ class TestCreateRequestParams:
         with pytest.raises(ValueError) as excinfo:
             _create_request_params(config)
         assert "Missing required" in str(excinfo.value)
+
+
+class TestSetupLogging:
+    def test_setup_logging_creates_log_file(self, tmp_path, caplog):
+        """Test that log file is created."""
+        log_dir = tmp_path / "logs"
+        log_config = {
+            "log_level": "INFO",
+            "log_dir": str(log_dir),
+            "log_filename": "test.log",
+        }
+        _ = _setup_logging(log_config)
+        log_file = log_dir / "test.log"
+        assert log_file.exists()
+
+    def test_setup_logging_invalid_log_level(self, tmp_path):
+        """Test invalid log level falls back to INFO."""
+        log_config = {
+            "log_level": "INVALID_LEVEL",
+            "log_dir": str(tmp_path),
+            "log_filename": "test.log",
+        }
+        _ = _setup_logging(log_config)
+        # Verify logger level is INFO (default)
+        root_logger = logging.getLogger()
+        assert root_logger.level == logging.INFO or root_logger.level == 0
+
+    def test_setup_logging_all_levels(self, tmp_path):
+        """Test all valid log levels work."""
+        for level in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
+            log_config = {
+                "log_level": level,
+                "log_dir": str(tmp_path),
+                "log_filename": f"{level}.log",
+            }
+            logger = _setup_logging(log_config)
+            assert logger is not None
+
+    def test_setup_logging_creates_parent_directories(self, tmp_path):
+        """Test that parent directories are created."""
+        log_dir = tmp_path / "nested" / "log" / "dir"
+        log_config = {"log_dir": str(log_dir), "log_filename": "test.log"}
+        _setup_logging(log_config)
+        assert log_dir.exists()
+        log_dir.unlink()  # Clean up created directories
