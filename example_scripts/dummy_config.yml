@@ -1,0 +1,31 @@
+StationIPs:
+    # Either provide station_ip_file or station_ips directly
+    station_ip_file: /path/to/station_ips.json
+    station_ips:
+        STA1: "192.168.1.1"
+        STA2: "192.168.1.2"
+LogConfig:
+    log_level: INFO
+    log_dir: /path/to/logdir
+    log_filename: my_log.log
+PipelineConfig:
+    data_dir: /path/to/datadir
+    chunksize_hours: 1
+    buffer_seconds: 150
+RequestParams:
+    # Either provide request_param_file or the parameters directly
+    request_param_file: /path/to/request_params.json
+    networks:
+        - "OX"
+    stations:
+        - "STA1"
+        - "STA2"
+    locations:
+        - "00"
+    channels:
+        - "HHZ"
+    start: 2023-01-01T00:00:00
+    end: 2023-01-02T00:00:00
+    # For a cron job, you might want to set start and end dynamically based on current date
+    cron: True
+    days_before: 2
