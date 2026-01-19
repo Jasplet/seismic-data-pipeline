@@ -15,14 +15,14 @@ from obspy import UTCDateTime
 
 from pipeline.utils import iterate_chunks
 
-path = Path("/data/eart0593/NYMAR/raw_data/")
+data_in_path = Path("/path/to/raw/data/")
 # local dev path
 # path = Path("/Users/eart0593/Projects/Agile/NYMAR/data_dump/")
 
-path_out = Path("/data/eart0593/NYMAR/seed_compliant/archive/")
+data_out_path = Path("/path/to/seed_compliant/archive/")
 # local dev path
 # path_out = Path("/Users/eart0593/Projects/Agile/NYMAR/archive/")
-path_out.mkdir(parents=True, exist_ok=True)
+data_out_path.mkdir(parents=True, exist_ok=True)
 
 fdsn_network = ["3N"]
 # Seedlink Parameters
@@ -37,10 +37,12 @@ def rename_to_seed_compliant(single_date, net, sta, loc, chan):
     year = single_date.year
     day = single_date.julday
     curr_dstamp = single_date.strftime("%Y%m%d")
-    path_to_data = path / f"{year}/{single_date.month:02d}/{single_date.day:02d}"
+    path_to_data = (
+        data_in_path / f"{year}/{single_date.month:02d}/{single_date.day:02d}"
+    )
 
     new_name = f"{fdsn_network[0]}.{sta}.00.{chan}.{year}.{day:03d}.mseed"
-    out_dir = path_out / f"{year}/{fdsn_network[0]}/{sta}/{chan}/"
+    out_dir = data_out_path / f"{year}/{fdsn_network[0]}/{sta}/{chan}/"
     out_dir.mkdir(parents=True, exist_ok=True)
     out_file = out_dir / new_name
     # If outfile already exists, skip

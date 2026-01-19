@@ -175,7 +175,7 @@ class RequestParams:
         )
 
     @classmethod
-    def from_bulk_inputs(cls, bulk_requests, timeout: int = 10):
+    def from_bulk_requests(cls, bulk_requests, timeout: int = 10):
         """
         Initializes RequestParams from tuple containing all request parameters.
         Intended use if for bulk, discontinuous requests, such as for gapfilling.
@@ -274,10 +274,10 @@ class RequestParams:
                     "Must provide network(s), station(s), location(s), and channel(s)"
                 )
             return cls.from_time_windows(
-                networks=networks,
-                stations=stations,
-                locations=locations,
-                channels=channels,
+                networks=networks,  # type: ignore
+                stations=stations,  # type: ignore
+                locations=locations,  # type: ignore
+                channels=channels,  # type: ignore
                 time_windows=time_windows,
             )
 

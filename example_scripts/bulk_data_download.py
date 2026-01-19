@@ -83,7 +83,7 @@ if __name__ == "__main__":
     # To use this script as an exmample to build your own code which finds
     # gaps that need filling and then sends the requests.
     bulk_requests = "/path/to/bulk_requests.pkl"
-    requests = RequestParams.from_bulk_inputs(bulk_requests)
+    requests = RequestParams.from_bulk_requests(bulk_requests)
     # Example of what bulk_requests should look like
     # RequestParams.from_bulk_inputs will also take a
     # premade list of tuples as shown below.
