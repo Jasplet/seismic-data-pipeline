@@ -175,7 +175,7 @@ class RequestParams:
         )
 
     @classmethod
-    def from_bulk_inputs(cls, bulk_requests, timeout: int = 10):
+    def from_bulk_requests(cls, bulk_requests, timeout: int = 10):
         """
         Initializes RequestParams from tuple containing all request parameters.
         Intended use if for bulk, discontinuous requests, such as for gapfilling.
