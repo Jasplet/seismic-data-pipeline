@@ -81,7 +81,7 @@ If you use this software in your research, please cite:
   author = {Asplet, J.},
   title = {seismic-data-pipeline: Asynchronous miniSEED data retrieval},
   year = {2024},
-  url = {https://github.com/yourusername/seismic-data-pipeline}
+  url = {https://github.com/kendall-group-oxford/seismic-data-pipeline}
 }
 ```
 
