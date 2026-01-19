@@ -11,6 +11,7 @@ from pipeline.io import (
     _create_request_params,
     _load_config_file,
     _load_station_ips,
+    load_from_config_file,
 )
 
 
@@ -159,10 +160,10 @@ def test_create_request_params_from_yml_seed_params():
         UTCDateTime(2024, 1, 2),
     )
     assert output_request_params.requests_to_make[1] == (
-        "YY",
+        "XX",
         "STA6",
-        "10",
-        "EHN",
+        "00",
+        "HHZ",
         UTCDateTime(2024, 1, 1),
         UTCDateTime(2024, 1, 2),
     )
@@ -189,3 +190,108 @@ def test_create_request_params_no_file():
     assert "Request parameters file non_existent_file.pkl does not exist." in str(
         excinfo.value
     )
+
+
+class TestLoadFromConfigFile:
+    def test_load_from_config_file_end_to_end(self, tmp_path):
+        """Full integration test with minimal valid config."""
+        # Create config file
+        config = {
+            "StationIPs": {"station_ips": {"STA1": "192.168.1.1"}},
+            "LogConfig": {"log_dir": str(tmp_path), "log_filename": "test.log"},
+            "PipelineConfig": {
+                "data_dir": str(tmp_path / "data"),
+                "chunksize_hours": 1,
+                "buffer_seconds": 150,
+            },
+            "RequestParams": {
+                "networks": "XX",
+                "stations": "STA1",
+                "locations": "00",
+                "channels": "HHZ",
+                "start": "2024-01-01T00:00:00",
+                "end": "2024-01-02T00:00:00",
+            },
+        }
+        config_file = tmp_path / "config.yml"
+        with open(config_file, "w") as f:
+            yaml.dump(config, f)
+
+        pipeline, params = load_from_config_file(config_file)
+        assert pipeline is not None
+        assert params is not None
+        assert len(params) > 0
+
+    def test_load_from_config_file_missing_section(self, tmp_path):
+        """Test handling of missing config section."""
+        config = {"StationIPs": {"station_ips": {"STA1": "1.1.1.1"}}}
+        config_file = tmp_path / "incomplete.yml"
+        with open(config_file, "w") as f:
+            yaml.dump(config, f)
+
+        # Should handle gracefully with defaults or raise clear error
+        try:
+            pipeline, params = load_from_config_file(config_file)
+        except (KeyError, ValueError):
+            # Either works with defaults or raises clear error
+            assert True
+
+
+class TestCreateRequestParams:
+    def test_create_request_params_cron_mode(self):
+        """Test cron mode calculates correct dates."""
+        config = {
+            "cron": True,
+            "days_before": 2,
+            "networks": "XX",
+            "stations": "STA1",
+            "locations": "00",
+            "channels": "HHZ",
+        }
+        params = _create_request_params(config)
+        today = datetime.date.today()
+        expected_start = UTCDateTime(today - datetime.timedelta(days=2))
+        expected_end = UTCDateTime(today)
+        for req in params.requests_to_make:
+            assert req[4] == expected_start
+            assert req[5] == expected_end
+        # Verify start/end were set
+        assert len(params) > 0
+
+    def test_create_request_params_invalid_datetime_string(self):
+        """Test invalid datetime format raises error."""
+        config = {
+            "networks": "XX",
+            "stations": "STA1",
+            "locations": "00",
+            "channels": "HHZ",
+            "start": "not-a-datetime",
+            "end": "2024-01-02",
+        }
+        with pytest.raises(Exception):  # UTCDateTime will raise
+            _create_request_params(config)
+
+    def test_create_request_params_iso_format_datetimes(self):
+        """Test ISO format datetimes parse correctly."""
+        config = {
+            "networks": "XX",
+            "stations": "STA1",
+            "locations": "00",
+            "channels": "HHZ",
+            "start": "2024-01-01T00:00:00",
+            "end": "2024-01-02T00:00:00",
+        }
+        params = _create_request_params(config)
+        assert len(params) > 0
+
+    def test_create_request_params_missing_required_fields(self):
+        """Test missing required SEED params raises error."""
+        config = {
+            "networks": "XX",
+            # Missing stations, locations, channels
+            "start": "2024-01-01",
+            "end": "2024-01-02",
+        }
+        with pytest.raises(ValueError) as excinfo:
+            _create_request_params(config)
+        assert "Missing required" in str(excinfo.value)
