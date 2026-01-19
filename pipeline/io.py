@@ -11,7 +11,7 @@ from pipeline.config import PipelineConfig, RequestParams
 from pipeline.core import DataPipeline
 
 
-def read_from_config_file(config_file: str | Path):
+def load_config_file(config_file: str | Path):
     """
     Reads requests config from a YML file.
 
