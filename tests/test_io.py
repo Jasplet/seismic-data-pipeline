@@ -308,7 +308,8 @@ class TestSetupLogging:
             "log_dir": str(log_dir),
             "log_filename": "test.log",
         }
-        _ = _setup_logging(log_config)
+        logger = _setup_logging(log_config)
+        logger.error("Test log message")
         log_file = log_dir / "test.log"
         assert log_file.exists()
 
@@ -322,7 +323,7 @@ class TestSetupLogging:
         _ = _setup_logging(log_config)
         # Verify logger level is INFO (default)
         root_logger = logging.getLogger()
-        assert root_logger.level == logging.INFO or root_logger.level == 0
+        assert root_logger.level == logging.WARNING
 
     def test_setup_logging_all_levels(self, tmp_path):
         """Test all valid log levels work."""
@@ -341,4 +342,3 @@ class TestSetupLogging:
         log_config = {"log_dir": str(log_dir), "log_filename": "test.log"}
         _setup_logging(log_config)
         assert log_dir.exists()
-        log_dir.unlink()  # Clean up created directories
