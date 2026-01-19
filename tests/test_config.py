@@ -120,7 +120,7 @@ class TestRequestParams:
 
     def test_bulk_requests_empty(self):
         with pytest.raises(ValueError) as excinfo:
-            _ = RequestParams.from_bulk_inputs(bulk_requests=[])
+            _ = RequestParams.from_bulk_requests(bulk_requests=[])
 
         assert "bulk_requests is empty" in str(excinfo.value)
 
@@ -143,7 +143,7 @@ class TestRequestParams:
                 obspy.UTCDateTime("2024-02-02"),
             ),
         ]
-        config = RequestParams.from_bulk_inputs(bulk_requests=bulk_requests)
+        config = RequestParams.from_bulk_requests(bulk_requests=bulk_requests)
 
         assert config.requests_to_make[0] == bulk_requests[0]
         assert config.requests_to_make[1] == bulk_requests[1]
@@ -174,7 +174,7 @@ class TestRequestParams:
             pickle.dump(bulk_requests, tmpfile)
             tmpfile_path = tmpfile.name
 
-        config = RequestParams.from_bulk_inputs(bulk_requests=tmpfile_path)
+        config = RequestParams.from_bulk_requests(bulk_requests=tmpfile_path)
 
         assert config.requests_to_make[0] == bulk_requests[0]
         assert config.requests_to_make[1] == bulk_requests[1]
