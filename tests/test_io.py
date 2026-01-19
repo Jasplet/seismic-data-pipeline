@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+from obspy import UTCDateTime
 
 from pipeline.io import (
     _create_pipeline_config,
@@ -61,6 +62,26 @@ def test_load_config_file_not_found():
     assert "Config file" in str(excinfo.value)
 
 
+def test_load_config_file_invalid_yaml(tmp_path):
+    """Test error when config file is invalid YAML"""
+    test_file = tmp_path / "invalid_config.yml"
+    with open(test_file, "w") as f:
+        f.write("This is not valid YAML: [unclosed_list\n")
+    with pytest.raises(ValueError) as excinfo:
+        _ = _load_config_file(test_file)
+    assert "Error parsing YAML config file" in str(excinfo.value)
+
+
+def test_load_config_file_empty(tmp_path):
+    """Test error when config file is empty"""
+    test_file = tmp_path / "empty_config.yml"
+    with open(test_file, "w") as f:
+        f.write("")
+    with pytest.raises(ValueError) as excinfo:
+        _ = _load_config_file(test_file)
+    assert "Config file is empty." in str(excinfo.value)
+
+
 def test_create_pipeline_config():
     pipeline_config_yml = {
         "data_dir": "/path/to/data",
@@ -68,7 +89,7 @@ def test_create_pipeline_config():
         "buffer_seconds": 300,
     }
     pipeline_config = _create_pipeline_config(pipeline_config_yml)
-    assert pipeline_config.data_dir == Path("/path/to/data")
+    assert pipeline_config.data_dir == "/path/to/data"
     assert pipeline_config.chunksize_hours == datetime.timedelta(hours=2)
     assert pipeline_config.buffer_seconds == datetime.timedelta(seconds=300)
 
@@ -92,16 +113,16 @@ def test_create_request_params_from_file(tmp_path):
             "STA1",
             "00",
             "BHZ",
-            datetime.datetime(2024, 1, 1),
-            datetime.datetime(2024, 1, 2),
+            UTCDateTime(2024, 1, 1),
+            UTCDateTime(2024, 1, 2),
         ),
         (
             "YY",
             "STA2",
             "10",
             "EHN",
-            datetime.datetime(2024, 2, 1),
-            datetime.datetime(2024, 2, 2),
+            UTCDateTime(2024, 2, 1),
+            UTCDateTime(2024, 2, 2),
         ),
     ]
     request_file = tmp_path / "requests.pkl"
@@ -118,42 +139,32 @@ def test_create_request_params_from_file(tmp_path):
     assert output_request_params.requests_to_make[1] == bulk_requests[1]
 
 
-def test_create_request_params_from_seed_params():
-    seed_params = [
-        {
-            "networks": "XX",
-            "stations": "STA1",
-            "locations": "00",
-            "channels": "BHZ",
-            "start": datetime.datetime(2024, 1, 1),
-            "end": datetime.datetime(2024, 1, 2),
-        },
-        {
-            "networks": "YY",
-            "stations": "STA2",
-            "locations": "10",
-            "channels": "EHN",
-            "start": datetime.datetime(2024, 2, 1),
-            "end": datetime.datetime(2024, 2, 2),
-        },
-    ]
-    output_request_params = _create_request_params({"seed_params": seed_params})
-    assert len(output_request_params) == len(seed_params)
+def test_create_request_params_from_yml_seed_params():
+    seed_params = {
+        "networks": ["XX", "XX"],
+        "stations": ["STA1", "STA6"],
+        "locations": ["00"],
+        "channels": ["HHZ"],
+        "start": UTCDateTime(2024, 1, 1),
+        "end": UTCDateTime(2024, 1, 2),
+    }
+    output_request_params = _create_request_params(seed_params)
+    assert len(output_request_params) == 4
     assert output_request_params.requests_to_make[0] == (
         "XX",
         "STA1",
         "00",
-        "BHZ",
-        datetime.datetime(2024, 1, 1),
-        datetime.datetime(2024, 1, 2),
+        "HHZ",
+        UTCDateTime(2024, 1, 1),
+        UTCDateTime(2024, 1, 2),
     )
     assert output_request_params.requests_to_make[1] == (
         "YY",
-        "STA2",
+        "STA6",
         "10",
         "EHN",
-        datetime.datetime(2024, 2, 1),
-        datetime.datetime(2024, 2, 2),
+        UTCDateTime(2024, 1, 1),
+        UTCDateTime(2024, 1, 2),
     )
 
 
