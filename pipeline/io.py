@@ -89,12 +89,8 @@ def _create_pipeline_config(pipeline_config_yml: dict):
     :type pipeline_config_yml: dict
     """
     data_dir = pipeline_config_yml.get("data_dir", Path.cwd())
-    chunksize_hours = datetime.timedelta(
-        hours=pipeline_config_yml.get("chunksize_hours", 1)
-    )
-    buffer_seconds = datetime.timedelta(
-        seconds=pipeline_config_yml.get("buffer_seconds", 150)
-    )
+    chunksize_hours = datetime.timedelta(hours=pipeline_config_yml["chunksize_hours"])
+    buffer_seconds = datetime.timedelta(seconds=pipeline_config_yml["buffer_seconds"])
     pipeline_config = PipelineConfig(
         data_dir=Path(data_dir),
         chunksize_hours=chunksize_hours,
@@ -124,7 +120,7 @@ def _create_request_params(request_config_yml: dict):
             f"Loading request parameters from file {request_config_yml['request_param_file']}"
         )
         request_param_file = request_config_yml["request_param_file"]
-        return RequestParams.from_bulk_inputs(request_param_file)
+        return RequestParams.from_bulk_requests(request_param_file)
 
     # Otherwise load from YML
     logging.info("Creating RequestParams from SEED params in config.")
