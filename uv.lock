@@ -2050,6 +2050,7 @@ dependencies = [
     { name = "obspy" },
     { name = "pyyaml" },
     { name = "requests" },
+    { name = "urllib3" },
 ]
 
 [package.dev-dependencies]
@@ -2069,6 +2070,7 @@ requires-dist = [
     { name = "obspy", specifier = ">=1.4.2" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "requests", specifier = ">=2.32.5" },
+    { name = "urllib3", specifier = ">=2.6.3" },
 ]
 
 [package.metadata.requires-dev]
