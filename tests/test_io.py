@@ -323,7 +323,7 @@ class TestSetupLogging:
         _ = _setup_logging(log_config)
         # Verify logger level is INFO (default)
         root_logger = logging.getLogger()
-        assert root_logger.level == logging.WARNING
+        assert root_logger.level == logging.INFO
 
     def test_setup_logging_all_levels(self, tmp_path):
         """Test all valid log levels work."""
