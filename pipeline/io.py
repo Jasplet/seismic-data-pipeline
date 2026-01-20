@@ -32,6 +32,7 @@ def _load_config_file(config_file: str | Path):
 def _setup_logging(log_config: dict):
     """
     Sets up logging based on provided configuration.
+    Configures the root logger to capture all module loggers.
     """
     log_level = log_config.get("log_level", "INFO")
     log_dir = Path(log_config.get("log_dir", Path.cwd()))
@@ -42,25 +43,36 @@ def _setup_logging(log_config: dict):
         log_dir.mkdir(parents=True, exist_ok=True)
 
     log_path = log_dir / log_filename
+
+    # Configure the root logger to capture all pipeline.* loggers
+    root_logger = logging.getLogger()
+
     # Remove any existing handlers to avoid duplicate logs
-    logger = logging.getLogger(__name__)
-    for handler in logger.handlers[:]:
-        logger.removeHandler(handler)
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
 
     # Create file handler
     file_handler = logging.FileHandler(log_path)
-    file_handler.setLevel
+    file_handler.setLevel(getattr(logging, log_level.upper(), logging.INFO))
+
+    # Create console handler for terminal output
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(getattr(logging, log_level.upper(), logging.INFO))
 
     # Formatter
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
     file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
 
-    logger.addHandler(file_handler)
-    logger.setLevel(getattr(logging, log_level.upper(), logging.INFO))
-    logger.propagate = False
-    logging.info("Log setup complete.")
+    # Add handlers to root logger
+    root_logger.addHandler(file_handler)
+    root_logger.addHandler(console_handler)
+    root_logger.setLevel(getattr(logging, log_level.upper(), logging.INFO))
+
+    logger = logging.getLogger(__name__)
+    logger.info("Log setup complete.")
     return logger
 
 
@@ -74,8 +86,9 @@ def _load_station_ips(station_ip_config: dict):
     logger = logging.getLogger(__name__)
     # Load station IPs
     if "station_ips_file" in station_ip_config:
-        logger.info("Loading station IPs from file.")
-        print(f"Read station IPs from file {station_ip_config['station_ips_file']}")
+        logger.info(
+            f"Loading station IPs from file  {station_ip_config['station_ips_file']}"
+        )
         station_ip_file = Path(station_ip_config["station_ips_file"])
         if not station_ip_file.exists():
             raise FileNotFoundError(
@@ -89,7 +102,7 @@ def _load_station_ips(station_ip_config: dict):
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid JSON station IPs file: {e}")
 
-    logger.info("Loading station IPs from config.")
+    logger.info("Loading station IPs from config file.")
     ips = station_ip_config.get("station_ips", {})
     if not ips:
         raise ValueError("No station IPs provided in config.")
@@ -133,6 +146,7 @@ def _create_request_params(request_config_yml: dict):
     if "request_param_file" in request_config_yml:
         request_file = Path(request_config_yml["request_param_file"])
         if not request_file.exists():
+            logging.critical(f"Request parameters file {request_file} does not exist.")
             raise FileNotFoundError(
                 f"Request parameters file {request_file} does not exist."
             )
@@ -259,7 +273,6 @@ def load_from_config_file(config_file: str | Path):
     ParamsForRequest = _create_request_params(all_config.get("RequestParams", {}))
 
     logger.info(f"Setup complete: {len(ParamsForRequest)} requests to make")
-    print(f"Setup complete: {len(ParamsForRequest)} requests to make")
 
     return ConfiguredPipeline, ParamsForRequest
 
@@ -273,17 +286,13 @@ if __name__ == "__main__":
         data_pipeline, request_params = load_from_config_file(config_file)
         # Now get the data
         logging.info("Starting data download")
-        print("Starting data download...")
         data_pipeline.get_data(request_params)
         logging.info("Data download complete")
-        print("Data download complete!")
     except Exception as e:
         logging.error(f"Error running data pipeline: {e}")
-        print(f"Error running data pipeline: {e}")
     finally:
         script_end = timeit.default_timer()
         runtime = script_end - script_start
         msg = f"Runtime was {runtime:4.2f} seconds, or {runtime / 60:4.2f} minutes."
         msg += f" or {runtime / 3600:4.2f} hours."
-        print(msg)
         logging.info(msg)

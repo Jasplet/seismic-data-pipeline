@@ -68,8 +68,7 @@ class DataPipeline:
                 raise ValueError(
                     f"Invalid IP address format for station {station}: {ip}"
                 )
-        if self.logger:
-            self.logger.info(f"Validated IP address for station {station}: {ip}")
+            self.logger.debug(f"Validated IP address for station {station}: {ip}")
 
     def get_data(self, SEED_params: RequestParams):
         """
@@ -94,6 +93,8 @@ class DataPipeline:
         urls, outfiles = self._make_urls(SEED_params)
         self.logger.info(f"There are {len(urls)} requests to make")
         requests_by_ip = self._group_by_stations(urls, outfiles)
+        self.logger.debug(f"URLs grouped by station: {list(requests_by_ip.keys())}")
+
         # Use semaphores to limit simultaneous requests per sensor
         semaphores = {
             sensor_ip: asyncio.Semaphore(self.config.n_async_requests)
@@ -105,10 +106,9 @@ class DataPipeline:
             # Limit the number of simultaneous requests
             # Adjust based on seismometer capacity
             for sensor_ip, reqs in requests_by_ip.items():
-                self.logger.info(f"Making requests to sensor at {sensor_ip}")
                 semaphore = semaphores[sensor_ip]
                 for request_url, outfile in reqs:
-                    self.logger.info(f"Calling _make_async_request for {request_url}")
+                    self.logger.debug(f"Calling _make_async_request for {request_url}")
                     task = asyncio.create_task(
                         self._make_async_request(
                             request_url, outfile, async_client_session, semaphore
@@ -141,13 +141,13 @@ class DataPipeline:
         async with semaphore:
             try:
                 async with session.get(request_url) as resp:
-                    self.logger.info(f"Request at {datetime.datetime.now()}")
+                    self.logger.debug(f"Request at {datetime.datetime.now()}")
                     # Print start and end times in a human readable format
                     st = obspy.UTCDateTime(
                         float(request_url.split("=")[-2].strip("&to"))
                     )
                     ed = obspy.UTCDateTime(float(request_url.split("=")[-1]))
-                    self.logger.info(f"Requesting {st} to {ed}")
+                    self.logger.debug(f"Requesting {st} to {ed}")
                     # Raise HTTP error for 4xx/5xx errors
                     resp.raise_for_status()
 
@@ -161,7 +161,9 @@ class DataPipeline:
                     # Now write data
                     with open(outfile, "wb") as f:
                         f.write(data)
-                    self.logger.info(f"Successfully wrote data to {outfile}")
+                    self.logger.info(
+                        f"Successfully wrote data from {request_url} to {outfile}"
+                    )
 
             except aiohttp.ClientResponseError as e:
                 self.logger.error(f"Client error for {request_url}: {e}")

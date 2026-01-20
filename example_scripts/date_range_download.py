@@ -27,21 +27,41 @@ from obspy import UTCDateTime
 from pipeline.config import PipelineConfig, RequestParams
 from pipeline.core import DataPipeline
 
-log = logging.getLogger(__name__)
-## ADD YOUR LOG DIRECTORY HERE
-logdir = Path("/path/to/custom/logdir")
-# test is logdir exists, if not then set to cwd
-if logdir.exists():
-    print(f"Logs written to {logdir}")
-else:
-    logdir = Path.cwd()
+if __name__ == "__main__":
+    ## ADD YOUR LOG DIRECTORY HERE
+    logdir = Path("/path/to/custom/logdir")
+    # test is logdir exists, if not then set to cwd
+    if logdir.exists():
+        print(f"Logs written to {logdir}")
+    else:
+        logdir = Path.cwd()
     print(f"Logs written to cwd - {logdir}")
 
-if __name__ == "__main__":
     script_start = timeit.default_timer()
     now = datetime.datetime.now()
+    ### - Setup logging - ###
     logname = f"data_download_{now.strftime('%Y%m%dT%H%M%S')}.log"
-    logging.basicConfig(filename=f"{logdir}/{logname}", level=logging.INFO)
+    # Create formatter for logs
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    # File handler - capture everything (DEBUG)
+    file_handler = logging.FileHandler(f"{logdir}/{logname}")
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+
+    # Console handler - only important stuff (INFO)
+    # This second logging handler outputs to terminal. If you
+    # are running remotely or on a cron job you may want to
+    # set this to WARNING or ERROR to reduce output or to delete it.
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(formatter)
+
+    # Root logger at DEBUG to capture everything
+    logging.basicConfig(level=logging.DEBUG, handlers=[file_handler, console_handler])
+    log = logging.getLogger(__name__)
     log.info("Starting download.")
 
     # ========== Start of variables to set ==========
