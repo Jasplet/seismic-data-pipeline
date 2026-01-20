@@ -44,7 +44,7 @@ pip install -e .
 pip install -e ".[dev]"
 ```
 
-## Examples
+## Examples
 
 Example use-case scripts can be found in `example_scripts`. These scripts are generalised and you will need to replace the dummy varialbes with your own, meaningful, ones.
 
@@ -56,7 +56,7 @@ Example scripts:
  - `find_data_gaps.py`
  - `make_seed_compliant_names.py`
 
-## Output file naming
+## Output file naming
 
 This code uses the following filenaming convention under the top level provided `<data_dir>`:
 
