@@ -146,6 +146,7 @@ def _create_request_params(request_config_yml: dict):
     if "request_param_file" in request_config_yml:
         request_file = Path(request_config_yml["request_param_file"])
         if not request_file.exists():
+            logging.critical(f"Request parameters file {request_file} does not exist.")
             raise FileNotFoundError(
                 f"Request parameters file {request_file} does not exist."
             )
