@@ -94,6 +94,8 @@ class DataPipeline:
         urls, outfiles = self._make_urls(SEED_params)
         self.logger.info(f"There are {len(urls)} requests to make")
         requests_by_ip = self._group_by_stations(urls, outfiles)
+        self.logger.debug(f"URLs grouped by station: {list(requests_by_ip.keys())}")
+
         # Use semaphores to limit simultaneous requests per sensor
         semaphores = {
             sensor_ip: asyncio.Semaphore(self.config.n_async_requests)
@@ -108,7 +110,7 @@ class DataPipeline:
                 self.logger.info(f"Making requests to sensor at {sensor_ip}")
                 semaphore = semaphores[sensor_ip]
                 for request_url, outfile in reqs:
-                    self.logger.info(f"Calling _make_async_request for {request_url}")
+                    self.logger.debug(f"Calling _make_async_request for {request_url}")
                     task = asyncio.create_task(
                         self._make_async_request(
                             request_url, outfile, async_client_session, semaphore
@@ -141,7 +143,7 @@ class DataPipeline:
         async with semaphore:
             try:
                 async with session.get(request_url) as resp:
-                    self.logger.info(f"Request at {datetime.datetime.now()}")
+                    self.logger.debug(f"Request at {datetime.datetime.now()}")
                     # Print start and end times in a human readable format
                     st = obspy.UTCDateTime(
                         float(request_url.split("=")[-2].strip("&to"))
