@@ -52,6 +52,9 @@ if __name__ == "__main__":
     file_handler.setFormatter(formatter)
 
     # Console handler - only important stuff (INFO)
+    # This second logging handler outputs to terminal. If you
+    # are running remotely or on a cron job you may want to
+    # set this to WARNING or ERROR to reduce output or to delete it.
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(formatter)
