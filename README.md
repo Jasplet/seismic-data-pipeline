@@ -44,13 +44,27 @@ pip install -e .
 pip install -e ".[dev]"
 ```
 
-Example use case scripts can be found in `scripts`. N.B these are not generalised and require you to configure your target instrument 
+## Examples
 
-Examples cases:
+Example use-case scripts can be found in `example_scripts`. These scripts are generalised and you will need to replace the dummy varialbes with your own, meaningful, ones.
+
+Example scripts:
  - `bulk_data_download.py`
  - `daily_remote_download.py`
  - `date_range_download.py`
  - `run_from_configfile.py`
+ - `find_data_gaps.py`
+ - `make_seed_compliant_names.py`
+
+## Output file naming
+
+This code uses the following filenaming convention under the top level provided `<data_dir>`:
+
+```<data_dir>/<year>/<month>/<day>/<network_code>.<station_code>.<location_code>.<channel>.<year><month><day>T<hour><minute><second>.mseed```
+
+For example, data requested from a station the netowrk code `OX`, station code `STA1`, location code `00`, and channel code `HHZ` for `2026/01/01` starting at `12:00:00` would be written to 
+
+```<data_dir>/2026/01/01/OX.STA1.00.HHZ.20260101T120000.mseed```
 
 ## Contributing
 
@@ -74,7 +88,7 @@ Contact: Joseph.Asplet@earth.ox.ac.uk
 
 ## Citation
 
-If you use this software in your research, please cite:
+If you use this software in your research, please consider citing:
 
 ```bibtex
 @software{asplet2024seismic,
