@@ -18,6 +18,18 @@ dependencies = [
     "obspy>=1.4.2",
     "pyyaml>=6.0.3",
 ]
+keywords = ["seismology", "miniseed", "data-download", "async"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+]
+
 
 [project.urls]
 github = "https://github.com/Jasplet/nymar-data-pipeline"
@@ -30,3 +42,9 @@ dev = [
     "pytest-asyncio>=1.3.0",
     "ruff>=0.14.11",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["pipeline"]
+
+[tool.hatch.build.targets.sdist]
+packages = ["pipeline"]
