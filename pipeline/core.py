@@ -108,7 +108,7 @@ class DataPipeline:
             for sensor_ip, reqs in requests_by_ip.items():
                 semaphore = semaphores[sensor_ip]
                 for request_url, outfile in reqs:
-                    self.logger.info(f"Calling _make_async_request for {request_url}")
+                    self.logger.debug(f"Calling _make_async_request for {request_url}")
                     task = asyncio.create_task(
                         self._make_async_request(
                             request_url, outfile, async_client_session, semaphore
