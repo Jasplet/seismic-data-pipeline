@@ -143,7 +143,7 @@ def make_urls(
             timestamp = f"{date}T{time}"
             outfile = ddir / f"{seed_params}.{timestamp}.mseed"
             if outfile.is_file():
-                log.info(f"Data chunk {outfile} exists")
+                log.warning(f"Data chunk {outfile} exists")
                 continue
             else:
                 request_url = form_request(
