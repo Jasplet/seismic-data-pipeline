@@ -68,7 +68,7 @@ def rename_to_seed_compliant(single_date, net, sta, loc, chan):
             print(f"TypeError for {path_to_data}/{f}, deleting")
             p = path_to_data / f
             p.unlink()
-    # Merge to fill gaps with zeros
+    # Print warning if multiple files found for day
     if len(st) > 1:
         print(
             f"Multiple {len(st)} files for {sta} {chan} on {single_date}. Assume these are hourly files. Gaps not filled"

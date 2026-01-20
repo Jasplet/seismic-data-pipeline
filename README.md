@@ -24,6 +24,18 @@ uv pip install -e .
 uv pip install -e ".[dev]"
 ```
 
+If installing it for another project you should do this (with a clean venv for that project)
+
+```
+# In whatever dir you keep cloned packages
+git clone https://github.com/kendall-group-oxford/seismic-data-pipeline.git
+
+cd ~/my-seismology-project
+uv venv
+source .venv/bin/activate
+uv pip install -e path/to/seismic-data-pipeline
+```
+
 ### Using pip + venv
 
 ```bash
