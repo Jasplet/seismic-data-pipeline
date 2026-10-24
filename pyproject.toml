@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "seismic-data-pipeline"
-version = "0.1.0"
+version = "0.3.0"
 description = "Package to get seismic data from Guralp digitisers via HTTP requests"
 readme = "README.md"
 authors = [{name = "Joseph Asplet", email = "joseph.asplet@earth.ox.ac.uk"}]
@@ -31,7 +31,7 @@ classifiers = [
 
 
 [project.urls]
-github = "https://github.com/Jasplet/nymar-data-pipeline"
+github = "https://github.com/Jasplet/seismic-data-pipeline"
 
 [dependency-groups]
 dev = [

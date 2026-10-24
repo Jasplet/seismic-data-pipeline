@@ -24,7 +24,8 @@ source .venv/bin/activate  # Linux/Mac
 uv pip install -e .
 
 # Install with development dependencies
-uv pip install -e ".[dev]"
+uv pip install -e. 
+uv sync --dev
 ```
 
 If installing it for another project you should do this (with a clean venv for that project)
@@ -59,7 +60,7 @@ pip install -e .
 
 ## Examples
 
-Example use-case scripts can be found in `example_scripts`. These scripts are generalised and you will need to replace the dummy varialbes with your own, meaningful, ones.
+Example use-case scripts can be found in `example_scripts`. These scripts are generalised and you will need to replace the dummy variables with your own, meaningful, ones.
 
 Example scripts:
  - `bulk_data_download.py`
@@ -75,7 +76,7 @@ This code uses the following filenaming convention under the top level provided 
 
 ```<data_dir>/<year>/<month>/<day>/<network_code>.<station_code>.<location_code>.<channel>.<year><month><day>T<hour><minute><second>.mseed```
 
-For example, data requested from a station the netowrk code `OX`, station code `STA1`, location code `00`, and channel code `HHZ` for `2026/01/01` starting at `12:00:00` would be written to 
+For example, data requested from a station the network code `OX`, station code `STA1`, location code `00`, and channel code `HHZ` for `2026/01/01` starting at `12:00:00` would be written to 
 
 ```<data_dir>/2026/01/01/OX.STA1.00.HHZ.20260101T120000.mseed```
 
@@ -119,13 +120,3 @@ Developed as part of seismic monitoring research at the University of Oxford.
 ## Support
 
 For bugs and feature requests, please [open an issue](https://github.com/Jasplet/seismic-data-pipeline/issues).
-
-
-## To-Dos
-
-2. Improve packaging / gathering of files.
-3. Fold in EIDA/FDSN requests.
-4. Async requests for regular downloads
-    a. Reorgansie gapfill script
-    b. add tests for async functions
-    c. make daily download use async functions
