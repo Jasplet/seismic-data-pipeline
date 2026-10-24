@@ -80,7 +80,7 @@ def group_urls_by_station(urls, outfiles):
 def make_urls(
     ip_dict,
     request_params,
-    data_dir=Path.cwd(),
+    data_dir=None,
     chunksize=datetime.timedelta(hours=1),
     buffer=datetime.timedelta(seconds=150),
 ):
@@ -105,6 +105,9 @@ def make_urls(
 
     urls = []
     outfiles = []
+
+    if data_dir is None:
+        data_dir = Path.cwd()
 
     for params in request_params:
         if len(params) != 6:
