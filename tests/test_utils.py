@@ -4,8 +4,10 @@ import unittest
 import pytest
 from obspy import UTCDateTime
 
-import pipeline.urls as urls
-import pipeline.utils as utils  # Assuming this is saved as data_pipeline.py
+from pipeline import (
+    urls,
+    utils,  # Assuming this is saved as data_pipeline.py
+)
 
 
 @pytest.mark.parametrize(
