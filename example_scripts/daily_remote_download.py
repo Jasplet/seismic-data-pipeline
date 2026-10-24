@@ -21,6 +21,7 @@ from obspy import UTCDateTime
 from pipeline.config import PipelineConfig, RequestParams
 from pipeline.core import DataPipeline
 
+logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 logdir = Path("/home/joseph/logs")
 # test is logdir exists, if not then set to cwd
@@ -31,13 +32,13 @@ else:
     print("Logs written to cwd")
 
 if __name__ == "__main__":
-    today = datetime.datetime.today()
+    today = datetime.datetime.now(tz=datetime.UTC)
     script_start = timeit.default_timer()
     logging.basicConfig(
         filename=f"{logdir}/remote_download_" + f"{today.strftime('%Y_%m_%d')}.log",
         level=logging.INFO,
     )
-    log.info(f"Starting download. Time is {datetime.datetime.now()}")
+    log.info(f"Starting download. Time is {datetime.datetime.now(tz=datetime.UTC)}")
 
     # ========== Start of variables to set ==========
 
@@ -87,8 +88,11 @@ if __name__ == "__main__":
     # SEED parameters to request
     # Check the request parameters match the settings on your Certimus/Minimus
     # These can be seen on the Certimus/Minimus status page (https://{your-ip-here})
-    start = UTCDateTime(datetime.date.today() - backfill_span)
-    end = UTCDateTime(datetime.date.today())
+    today_utc = datetime.datetime.now(tz=datetime.UTC).date()
+    start = datetime.datetime.combine(
+        today_utc - backfill_span, datetime.time.min, tzinfo=datetime.UTC
+    )
+    end = datetime.datetime.combine(today_utc, datetime.time.min, tzinfo=datetime.UTC)
     log.info(f"Query start time: {start}")
     log.info(f"Query end time: {end}")
 
@@ -99,8 +103,8 @@ if __name__ == "__main__":
         channels=["HHZ", "HHN", "HHE"],  # Channel codes
         # Time span to get data for. Edit these start/end objects
         # to customise the timespan to get data for.
-        starttime=start,
-        endtime=end,
+        starttime=UTCDateTime(start),
+        endtime=UTCDateTime(end),
     )
 
     script_end = timeit.default_timer()

@@ -1,4 +1,4 @@
-#! make_seed_compliant_names.py
+#  make_seed_compliant_names.py
 
 # ----- Script to rename NYMAR data files to be SEED/FDSN compliant -----
 
