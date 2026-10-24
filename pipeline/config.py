@@ -31,11 +31,9 @@ class RequestParams:
 
     def __init__(
         self,
-        requests_to_make: list[
-            tuple[str, str, str, str, UTCDateTime, UTCDateTime]
-        ] = [],
-        timeout: int = 10,
-    ):  # seconds
+        requests_to_make: list[tuple[str, str, str, str, UTCDateTime, UTCDateTime]],
+        timeout: int = 10,  # seconds
+    ):
         self.requests_to_make = requests_to_make
         self.timeout = timeout
         self._validate()
@@ -301,6 +299,8 @@ class RequestParams:
             raise ValueError(
                 f"Missing required parameters: {', '.join(missing_params)}"
             )
+
+        assert start is not None and end is not None
 
         return cls.from_date_range(
             networks=networks,  # type: ignore

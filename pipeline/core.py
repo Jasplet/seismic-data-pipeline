@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import logging
+from pathlib import Path
 
 import aiohttp
 import obspy
@@ -11,7 +12,7 @@ from pipeline.urls import group_urls_by_station, make_urls
 
 
 class DataPipeline:
-    def __init__(self, station_ips, config: PipelineConfig = PipelineConfig()):
+    def __init__(self, station_ips, config: PipelineConfig | None = None):
         """
         Initializes DataPipeline with station IPs and configuration.§
 
@@ -19,13 +20,13 @@ class DataPipeline:
         ----------
         station_ips : dict
             Dictionary of station codes and their corresponding IP addresses.
-        config : PipelineConfig
+        config : PipelineConfig | None
             Configuration parameters for the data pipeline.
             If not provided, defaults to PipelineConfig().
         """
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
-        self.config = config
+        self.config = config if config is not None else PipelineConfig()
         self.station_ips = station_ips
         self._validate_ips()
         # Only configure if is no higher level logging handler
@@ -158,9 +159,8 @@ class DataPipeline:
                             "Request is empty!" + "Won’t write a zero byte file."
                         )
                         return
-                    # Now write data
-                    with open(outfile, "wb") as f:
-                        f.write(data)
+                    # Now write data (async to avoid blocking)
+                    await asyncio.to_thread(Path(outfile).write_bytes, data)
                     self.logger.info(
                         f"Successfully wrote data from {request_url} to {outfile}"
                     )
@@ -172,8 +172,8 @@ class DataPipeline:
             except aiohttp.ClientConnectionError as e:
                 self.logger.error(f"Connection error for {request_url}: {e}")
 
-            except Exception as e:
-                self.logger.error(f"Unexpected error for {request_url}: {e}")
+            except Exception:
+                self.logger.exception("Unexpected error for request %s", request_url)
             return
 
     def _group_by_stations(self, urls, outfiles):
