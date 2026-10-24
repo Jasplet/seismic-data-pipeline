@@ -1,6 +1,7 @@
 import asyncio
 import io
 from pathlib import Path
+from typing import ClassVar
 from unittest.mock import AsyncMock, MagicMock
 
 import aiohttp
@@ -14,7 +15,7 @@ from pipeline.core import DataPipeline
 
 
 class TestDataPipeline:
-    station_ips = {"TEST": "62.58.106.115"}
+    station_ips: ClassVar[dict[str, str]] = {"TEST": "62.58.106.115"}
     config = PipelineConfig(data_dir=Path("/path/to/data"))
 
     def test_pipeline_initialization(self):

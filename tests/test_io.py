@@ -233,7 +233,7 @@ class TestLoadFromConfigFile:
 
         # Should handle gracefully with defaults or raise clear error
         try:
-            pipeline, params = load_from_config_file(config_file)
+            _, _ = load_from_config_file(config_file)
         except (KeyError, ValueError):
             # Either works with defaults or raises clear error
             assert True
@@ -270,7 +270,7 @@ class TestCreateRequestParams:
             "start": "not-a-datetime",
             "end": "2024-01-02",
         }
-        with pytest.raises(Exception):  # UTCDateTime will raise
+        with pytest.raises(TypeError):  # UTCDateTime will raise
             _create_request_params(config)
 
     def test_create_request_params_iso_format_datetimes(self):
