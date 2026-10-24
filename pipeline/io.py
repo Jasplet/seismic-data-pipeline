@@ -10,6 +10,8 @@ from obspy import UTCDateTime
 from pipeline.config import PipelineConfig, RequestParams
 from pipeline.core import DataPipeline
 
+log = logging.getLogger(__name__)
+
 
 def _load_config_file(config_file: str | Path):
     """
@@ -132,7 +134,7 @@ def _create_pipeline_config(pipeline_config_yml: dict):
         )
 
     pipeline_config = PipelineConfig(**kwargs)
-    logging.info("PipelineConfig created from config.")
+    log.info("PipelineConfig created from config.")
     return pipeline_config
 
 
@@ -146,21 +148,21 @@ def _create_request_params(request_config_yml: dict):
     if "request_param_file" in request_config_yml:
         request_file = Path(request_config_yml["request_param_file"])
         if not request_file.exists():
-            logging.critical(f"Request parameters file {request_file} does not exist.")
+            log.critical(f"Request parameters file {request_file} does not exist.")
             raise FileNotFoundError(
                 f"Request parameters file {request_file} does not exist."
             )
         print(
             f"Reading request parameters from file {request_config_yml['request_param_file']}"
         )
-        logging.info(
+        log.info(
             f"Loading request parameters from file {request_config_yml['request_param_file']}"
         )
         request_param_file = request_config_yml["request_param_file"]
         return RequestParams.from_bulk_requests(request_param_file)
 
     # Otherwise load from YML
-    logging.info("Creating RequestParams from SEED params in config.")
+    log.info("Creating RequestParams from SEED params in config.")
 
     # Create start / end times for cron jobs if needed
     if request_config_yml.get("cron", False):
@@ -168,7 +170,7 @@ def _create_request_params(request_config_yml: dict):
         date_today = datetime.date.today()
         end = UTCDateTime(date_today)
         start = UTCDateTime(date_today - datetime.timedelta(days=days_before))
-        logging.info(
+        log.info(
             f"Cron mode active. Setting starttime to {start} and endtime to {end}."
         )
         request_config_yml["start"] = start
@@ -282,17 +284,13 @@ if __name__ == "__main__":
     script_start = timeit.default_timer()
     config_file = "path/to/config.yml"
 
-    try:
-        data_pipeline, request_params = load_from_config_file(config_file)
-        # Now get the data
-        logging.info("Starting data download")
-        data_pipeline.get_data(request_params)
-        logging.info("Data download complete")
-    except Exception as e:
-        logging.error(f"Error running data pipeline: {e}")
-    finally:
-        script_end = timeit.default_timer()
-        runtime = script_end - script_start
-        msg = f"Runtime was {runtime:4.2f} seconds, or {runtime / 60:4.2f} minutes."
-        msg += f" or {runtime / 3600:4.2f} hours."
-        logging.info(msg)
+    data_pipeline, request_params = load_from_config_file(config_file)
+    # Now get the data
+    log.info("Starting data download")
+    data_pipeline.get_data(request_params)
+    log.info("Data download complete")
+    script_end = timeit.default_timer()
+    runtime = script_end - script_start
+    msg = f"Runtime was {runtime:4.2f} seconds, or {runtime / 60:4.2f} minutes."
+    msg += f" or {runtime / 3600:4.2f} hours."
+    log.info(msg)
