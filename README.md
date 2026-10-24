@@ -18,13 +18,12 @@ cd seismic-data-pipeline
 uv venv
 source .venv/bin/activate  # Linux/Mac
 # OR
-.venv\Scripts\activate.ps1     # Windows Powershell
+.\.venv\Scripts\activate.ps1     # Windows Powershell
 
 # Install package
 uv pip install -e .
 
-# Install with development dependencies
-uv pip install -e. 
+# Optional: add  development/test dependencies
 uv sync --dev
 ```
 
@@ -51,7 +50,7 @@ cd seismic-data-pipeline
 python -m venv .venv
 source .venv/bin/activate  # Linux/Mac
 # OR
-.venv\Scripts\activate.ps1     # Windows Powershell
+.\.venv\Scripts\activate.ps1     # Windows Powershell
 
 # Install package
 pip install -e .
