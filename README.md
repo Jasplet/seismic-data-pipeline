@@ -4,18 +4,21 @@ Initially developed for a project in Oxford, but has now hopefully been generali
 
 ## Installation
 
+Note: `seismic-data-pipeline` requires python >=3.11.
+
+
 ### Using uv (recommended)
 
 ```bash
 # Clone the repository
-git clone https://github.com/kendall-group-oxford/seismic-data-pipeline.git
+git clone https://github.com/jasplet/seismic-data-pipeline.git
 cd seismic-data-pipeline
 
 # Create and activate virtual environment
 uv venv
 source .venv/bin/activate  # Linux/Mac
 # OR
-.venv\Scripts\activate     # Windows
+.venv\Scripts\activate.ps1     # Windows Powershell
 
 # Install package
 uv pip install -e .
@@ -28,7 +31,7 @@ If installing it for another project you should do this (with a clean venv for t
 
 ```
 # In whatever dir you keep cloned packages
-git clone https://github.com/kendall-group-oxford/seismic-data-pipeline.git
+git clone https://github.com/Jasplet/seismic-data-pipeline.git
 
 cd ~/my-seismology-project
 uv venv
@@ -40,20 +43,18 @@ uv pip install -e path/to/seismic-data-pipeline
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/seismic-data-pipeline.git
+git clone https://github.com/Jasplet/seismic-data-pipeline.git
 cd seismic-data-pipeline
 
 # Create and activate virtual environment
 python -m venv .venv
 source .venv/bin/activate  # Linux/Mac
 # OR
-.venv\Scripts\activate     # Windows
+.venv\Scripts\activate.ps1     # Windows Powershell
 
 # Install package
 pip install -e .
 
-# Install with development dependencies
-pip install -e ".[dev]"
 ```
 
 ## Examples
@@ -90,7 +91,7 @@ Contributions are welcome! Please:
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details.
 
 ## Author
 
@@ -107,7 +108,7 @@ If you use this software in your research, please consider citing:
   author = {Asplet, J.},
   title = {seismic-data-pipeline: Asynchronous miniSEED data retrieval},
   year = {2024},
-  url = {https://github.com/kendall-group-oxford/seismic-data-pipeline}
+  url = {https://github.com/Jasplet/seismic-data-pipeline}
 }
 ```
 
@@ -117,7 +118,7 @@ Developed as part of seismic monitoring research at the University of Oxford.
 
 ## Support
 
-For bugs and feature requests, please [open an issue](https://github.com/kendall-group-oxford/seismic-data-pipeline/issues).
+For bugs and feature requests, please [open an issue](https://github.com/Jasplet/seismic-data-pipeline/issues).
 
 
 ## To-Dos
